@@ -4,11 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MiDolo - Modern War</title>
+    <title>War.0</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -16,18 +16,26 @@
         <!-- Left Panel: Controls & Deck -->
         <aside class="panel left-panel">
             <div class="panel-header">
-                <h2>Deck</h2>
+                <h2>War.0</h2>
                 <div id="remaining-count" class="deck-count">36 Cards</div>
             </div>
 
-            <div class="deck-area">
-                <button id="draw-btn" class="deck-stack">
-                    <span class="deck-label">DRAW</span>
+            <div class="controls-area">
+                <!-- Moved Draw Button Here (Above Deck) -->
+                <button id="draw-btn" class="btn primary-action">
+                    DRAW CARD
                 </button>
             </div>
 
-            <div class="controls-area">
-                <button id="sim-btn" class="btn secondary">Simulate Game</button>
+            <div class="deck-area">
+                <!-- Deck Below -->
+                <div class="deck-stack">
+                    <span class="deck-label">DECK</span>
+                </div>
+            </div>
+
+            <div class="secondary-controls">
+                <button id="sim-btn" class="btn secondary">Simulate</button>
                 <button id="reset-btn" class="btn tertiary">Reset</button>
             </div>
         </aside>
