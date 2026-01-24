@@ -375,16 +375,16 @@ body {
     color: var(--accent-secondary);
 }
 
-/* History Grid - 4x9 Setup */
+/* History Grid - 6x6 Setup */
 .history-grid {
     display: grid;
-    /* 4 columns exactly */
-    grid-template-columns: repeat(4, 1fr);
-    /* 9 rows implicit */
+    /* 6 columns exactly */
+    grid-template-columns: repeat(6, 1fr);
+    /* 6 rows implicit (for 36 cards) */
     grid-auto-rows: max-content;
     gap: 4px;
-    width: 108px;
-    /* 4 * 22px + 3 * 4px gaps approx */
+    width: 164px;
+    /* 6 * 24px + 5 * 4px gaps = 164px */
     height: auto;
     background: transparent;
     border: none;
