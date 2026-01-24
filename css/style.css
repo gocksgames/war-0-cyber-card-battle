@@ -70,14 +70,12 @@ body {
     background: var(--reinf-bg);
     border-left: 1px solid #059669;
     border-right: none;
-    /* Match lane structure */
+    /* Match lane structure but with fixed width */
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem;
-    flex: 1;
-    width: 0;
 }
 
 /* Recon card slot - replaces card slot in lane */
@@ -966,7 +964,9 @@ input:checked+.slider:before {
     /* Reset old styles */
     display: block;
     width: 100%;
-}/* AI Difficulty Slider */
+}
+
+/* AI Difficulty Slider */
 .ai-difficulty-group {
     display: flex;
     flex-direction: column;
