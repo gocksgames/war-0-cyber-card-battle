@@ -49,7 +49,7 @@ export class GameState {
         };
 
         this.isGameOver = false;
-        this.difficulty = 2; // 0=Random, 1=Easy, 2=Hard
+        this.difficulty = 2;
 
         this.initializeGame();
     }
@@ -90,7 +90,7 @@ export class GameState {
         let cpuLane = 'center';
 
         if (this.difficulty === 2) {
-            cpuLane = this.getSmartCPUMove();
+            cpuLane = this.getStrategicCPUMove();
         } else if (this.difficulty === 1) {
             cpuLane = this.getEasyCPUMove();
         } else {
@@ -123,58 +123,77 @@ export class GameState {
         return roundResult;
     }
 
-    getSmartCPUMove() {
-        // Hard AI: Strategic lane selection focusing on winning lanes
+    getStrategicCPUMove() {
+        // ADVANCED AI: Win 2 of 3 lanes strategically
         const lanes = ['left', 'center', 'right'];
 
-        // Analyze each lane
+        // Analyze each lane's state and winnability
         const analysis = lanes.map(lane => {
-            const diff = this.lanes[lane].score2 - this.lanes[lane].score1;
-            const p2Cards = this.lanes[lane].history.filter(h => h.player === 'p2').length;
-            const cardsLeft = 2 - p2Cards;
+            const laneData = this.lanes[lane];
+            const p2Cards = laneData.history.filter(h => h.player === 'p2').length;
+            const p1Cards = laneData.history.filter(h => h.player === 'p1').length;
+            const slotsLeft = 2 - p2Cards;
+            const diff = laneData.score2 - laneData.score1; // CPU - Player
 
-            let priority = 0;
+            // Maximum we could add (2 cards of value 10 each = 20)
+            const maxGain = slotsLeft * 10;
+            // Realistic gain (average card is ~6)
+            const avgGain = slotsLeft * 6;
 
-            // Can't play here
-            if (cardsLeft === 0) {
-                priority = -1000;
-            }
-            // Losing by a lot - try to prevent total loss
-            else if (diff < -20) {
-                priority = 80;
-            }
-            // Losing slightly - HIGH priority to catch up
-            else if (diff < -5) {
-                priority = 100;
-            }
-            // Close game or tied - try to win
-            else if (diff <= 5) {
-                priority = 95;
-            }
-            // Winning - reinforce
-            else if (diff <= 15) {
-                priority = 70;
-            }
-            // Winning big - lower priority
-            else {
-                priority = 30;
-            }
+            const canWin = (diff + maxGain) > 0;
+            const likelyWin = (diff + avgGain) > 3;
+            const winning = diff > 0;
+            const tied = diff === 0;
 
-            return { lane, priority, diff };
+            return { lane, diff, slotsLeft, canWin, likelyWin, winning, tied };
         });
 
-        // Filter available lanes and sort by priority
-        const available = analysis.filter(a => a.priority > -1000);
-
+        // Filter lanes we can play
+        const available = analysis.filter(a => a.slotsLeft > 0);
         if (available.length === 0) return 'center';
 
-        available.sort((a, b) => b.priority - a.priority);
+        // Count current state
+        const lanesWon = available.filter(a => a.winning).length;
+        const lanesCanWin = available.filter(a => a.canWin).length;
 
+        // STRATEGY 1: Already winning 2+ lanes - defend them
+        if (lanesWon >= 2) {
+            const winningLanes = available.filter(a => a.winning);
+            // Defend the weakest winning lane
+            winningLanes.sort((a, b) => a.diff - b.diff);
+            return winningLanes[0].lane;
+        }
+
+        // STRATEGY 2: Winning 1 lane - secure a second
+        if (lanesWon === 1) {
+            // Try to win another lane
+            const losable = available.filter(a => !a.winning && a.canWin);
+            if (losable.length > 0) {
+                // Focus on closest lane
+                losable.sort((a, b) => b.diff - a.diff); // Least behind
+                return losable[0].lane;
+            }
+            // Defend our winning lane
+            const winner = available.find(a => a.winning);
+            return winner ? winner.lane : available[0].lane;
+        }
+
+        // STRATEGY 3: Not winning any - secure 2 most winnable
+        const winnable = available.filter(a => a.canWin);
+        if (winnable.length >= 2) {
+            // Pick best opportunity (closest to winning)
+            winnable.sort((a, b) => b.diff - a.diff);
+            return winnable[0].lane;
+        } else if (winnable.length === 1) {
+            return winnable[0].lane;
+        }
+
+        // STRATEGY 4: Damage control - play least bad lane
+        available.sort((a, b) => b.diff - a.diff);
         return available[0].lane;
     }
 
     getEasyCPUMove() {
-        // Easy AI: Avoid heavily losing lanes
         const lanes = ['left', 'center', 'right'];
 
         const okLanes = lanes.filter(l => {
@@ -187,7 +206,6 @@ export class GameState {
             return okLanes[Math.floor(Math.random() * okLanes.length)];
         }
 
-        // Fallback to lanes with space
         const withSpace = lanes.filter(l => {
             const p2Cards = this.lanes[l].history.filter(h => h.player === 'p2').length;
             return p2Cards < 2;
