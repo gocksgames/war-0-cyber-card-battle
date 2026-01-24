@@ -24,7 +24,8 @@ export class UIController {
             p1Score: document.getElementById(`p1-score-${lane}`),
             p2Score: document.getElementById(`p2-score-${lane}`),
             p1History: document.getElementById(`p1-history-${lane}`),
-            p2History: document.getElementById(`p2-history-${lane}`)
+            p2History: document.getElementById(`p2-history-${lane}`),
+            diffBadge: document.getElementById(`diff-${lane}`)
         };
     }
 
@@ -49,6 +50,22 @@ export class UIController {
         const els = this.getLaneElements(lane);
         if (els.p1Score) this.animateValue(els.p1Score, parseInt(els.p1Score.innerText), s1, 300);
         if (els.p2Score) this.animateValue(els.p2Score, parseInt(els.p2Score.innerText), s2, 300);
+
+        // Update Difference Badge
+        if (els.diffBadge) {
+            const diff = s1 - s2;
+            els.diffBadge.textContent = diff === 0 ? '0' : (diff > 0 ? `+${diff}` : diff);
+
+            // Remove old classes
+            els.diffBadge.classList.remove('diff-positive', 'diff-negative');
+
+            // Add new classes logic
+            if (diff > 0) {
+                els.diffBadge.classList.add('diff-positive');
+            } else if (diff < 0) {
+                els.diffBadge.classList.add('diff-negative');
+            }
+        }
     }
 
     addToHistory(card1, card2, lane) {
@@ -114,6 +131,10 @@ export class UIController {
             if (els.p2Score) els.p2Score.textContent = '0';
             if (els.p1History) els.p1History.innerHTML = '';
             if (els.p2History) els.p2History.innerHTML = '';
+            if (els.diffBadge) {
+                els.diffBadge.textContent = '0';
+                els.diffBadge.classList.remove('diff-positive', 'diff-negative');
+            }
         });
 
         this.setButtonsEnabled(true);
