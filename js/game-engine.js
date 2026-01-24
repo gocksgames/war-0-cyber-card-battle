@@ -44,9 +44,14 @@ export class GameState {
         this.deck = new Deck(); // Helper only now
         this.player1Deck = [];
         this.player2Deck = [];
-        this.score1 = 0;
-        this.score2 = 0;
-        this.history = [];
+
+        // Lane Data
+        this.lanes = {
+            left: { p1: [], p2: [], score1: 0, score2: 0, history: [] },
+            center: { p1: [], p2: [], score1: 0, score2: 0, history: [] },
+            right: { p1: [], p2: [], score1: 0, score2: 0, history: [] }
+        };
+
         this.isGameOver = false;
     }
 
@@ -61,45 +66,53 @@ export class GameState {
         deck2.shuffle();
         this.player2Deck = deck2.cards;
 
-        this.score1 = 0;
-        this.score2 = 0;
-        this.history = [];
+        // Reset Lanes
+        this.lanes = {
+            left: { score1: 0, score2: 0, history: [] },
+            center: { score1: 0, score2: 0, history: [] },
+            right: { score1: 0, score2: 0, history: [] }
+        };
+
         this.isGameOver = false;
     }
 
-    playRound() {
+    playRound(laneName) {
         if (this.player1Deck.length === 0 || this.player2Deck.length === 0) {
             this.isGameOver = true;
+            return null;
+        }
+
+        if (!['left', 'center', 'right'].includes(laneName)) {
+            console.error("Invalid lane:", laneName);
             return null;
         }
 
         const card1 = this.player1Deck.shift();
         const card2 = this.player2Deck.shift();
 
-        // NEW RULE: Score is the accumulator of the value of cards played by the player.
-        // Independent of who "wins" the hand.
-        this.score1 += card1.value;
-        this.score2 += card2.value;
+        const lane = this.lanes[laneName];
 
+        // Score Update (Accumulator)
+        lane.score1 += card1.value;
+        lane.score2 += card2.value;
+
+        // Determine Winner of this hand (for fun/animation, though score is what matters)
         let winner = null;
-        if (card1.value > card2.value) {
-            winner = 'player1';
-        } else if (card2.value > card1.value) {
-            winner = 'player2';
-        } else {
-            winner = 'tie';
-        }
+        if (card1.value > card2.value) winner = 'player1';
+        else if (card2.value > card1.value) winner = 'player2';
+        else winner = 'tie';
 
         const roundResult = {
             card1,
             card2,
             winner,
-            score1: this.score1,
-            score2: this.score2,
+            lane: laneName,
+            score1: lane.score1,
+            score2: lane.score2,
             cardsRemaining: this.player1Deck.length
         };
 
-        this.history.push(roundResult);
+        lane.history.push(roundResult);
 
         if (this.player1Deck.length === 0) {
             this.isGameOver = true;
@@ -110,8 +123,12 @@ export class GameState {
 
     simulateRestOfGame() {
         const results = [];
+        const lanes = ['left', 'center', 'right'];
+
         while (!this.isGameOver) {
-            results.push(this.playRound());
+            // Pick a random lane for simulation
+            const randomLane = lanes[Math.floor(Math.random() * lanes.length)];
+            results.push(this.playRound(randomLane));
         }
         return results;
     }
