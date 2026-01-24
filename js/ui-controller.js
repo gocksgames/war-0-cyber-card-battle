@@ -156,6 +156,8 @@ export class UIController {
         const threatDelta = document.getElementById('threat-delta');
         const p1StrikeRating = document.getElementById('p1-strike-rating');
         const p2StrikeRating = document.getElementById('p2-strike-rating');
+        const p1StrikeDelta = document.getElementById('p1-strike-delta');
+        const p2StrikeDelta = document.getElementById('p2-strike-delta');
 
         // Threat Delta (CPU - Player difference)
         if (threatDelta) {
@@ -168,14 +170,26 @@ export class UIController {
         }
 
         // Strike Rating (average card value) for each player
+        const p1Avg = p1Count > 0 ? (p1Total / p1Count) : 6.0;
+        const p2Avg = p2Count > 0 ? (p2Total / p2Count) : 6.0;
+
         if (p1StrikeRating) {
-            const avg = p1Count > 0 ? (p1Total / p1Count).toFixed(1) : '0.0';
-            p1StrikeRating.textContent = avg;
+            p1StrikeRating.textContent = p1Avg.toFixed(1);
         }
 
         if (p2StrikeRating) {
-            const avg = p2Count > 0 ? (p2Total / p2Count).toFixed(1) : '0.0';
-            p2StrikeRating.textContent = avg;
+            p2StrikeRating.textContent = p2Avg.toFixed(1);
+        }
+
+        // Strike Delta (difference from base 6.0)
+        if (p1StrikeDelta) {
+            const delta = p1Avg - 6.0;
+            p1StrikeDelta.textContent = delta === 0 ? '(+0)' : (delta > 0 ? `(+${delta.toFixed(1)})` : `(${delta.toFixed(1)})`);
+        }
+
+        if (p2StrikeDelta) {
+            const delta = p2Avg - 6.0;
+            p2StrikeDelta.textContent = delta === 0 ? '(+0)' : (delta > 0 ? `(+${delta.toFixed(1)})` : `(${delta.toFixed(1)})`);
         }
     }
 

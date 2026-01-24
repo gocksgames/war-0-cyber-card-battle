@@ -70,6 +70,14 @@ body {
     background: var(--reinf-bg);
     border-left: 1px solid #059669;
     border-right: none;
+    /* Match lane structure */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    flex: 1;
+    width: 0;
 }
 
 /* Recon card slot - replaces card slot in lane */
@@ -95,6 +103,15 @@ body {
     width: 100%;
 }
 
+.recon-power-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
 .recon-power-value {
     font-family: var(--font-header);
     font-size: 2.5rem;
@@ -115,6 +132,12 @@ body {
 .recon-strike-label span {
     color: var(--reinf-header-color);
     font-size: 0.9rem;
+}
+
+.strike-delta {
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    opacity: 0.8;
 }
 
 /* Create equal spacing containers */
