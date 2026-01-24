@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiDolo - Modern War</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="game-stage">
+        <!-- Left Panel: Controls & Deck -->
+        <aside class="panel left-panel">
+            <div class="panel-header">
+                <h2>Deck</h2>
+                <div id="remaining-count" class="deck-count">36 Cards</div>
+            </div>
+
+            <div class="deck-area">
+                <button id="draw-btn" class="deck-stack">
+                    <span class="deck-label">DRAW</span>
+                </button>
+            </div>
+
+            <div class="controls-area">
+                <button id="sim-btn" class="btn secondary">Simulate Game</button>
+                <button id="reset-btn" class="btn tertiary">Reset</button>
+            </div>
+        </aside>
+
+        <!-- Center Panel: Battle Arena -->
+        <main class="battle-arena">
+            <div class="player-zone p2-zone">
+                <div class="player-label">CPU</div>
+                <div id="p2-card-slot" class="card-slot">
+                    <!-- Card injected here -->
+                </div>
+            </div>
+
+            <div class="vs-badge">VS</div>
+
+            <div class="player-zone p1-zone">
+                <div id="p1-card-slot" class="card-slot">
+                    <!-- Card injected here -->
+                </div>
+                <div class="player-label">YOU</div>
+            </div>
+
+            <div id="message-area" class="message-area"></div>
+        </main>
+
+        <!-- Right Panel: Scores & History -->
+        <aside class="panel right-panel">
+            <div class="panel-header">
+                <h2>Total Value</h2>
+            </div>
+
+            <div class="score-board">
+                <div class="score-card p2-score">
+                    <span class="label">CPU Sum</span>
+                    <span id="p2-score" class="score-value">0</span>
+                    <div id="p2-history" class="history-grid"></div>
+                </div>
+                <div class="score-card p1-score">
+                    <span class="label">My Sum</span>
+                    <span id="p1-score" class="score-value">0</span>
+                    <div id="p1-history" class="history-grid"></div>
+                </div>
+            </div>
+
+            <div id="sim-stats" class="simulation-stats hidden">
+                <h3>Results</h3>
+                <div class="stat-row">
+                    <span>P1 Sum:</span> <span id="stat-p1-wins">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>P2 Sum:</span> <span id="stat-p2-wins">0</span>
+                </div>
+                <div class="stat-total">
+                    <span>Result:</span> <span id="stat-final-score">0 - 0</span>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Load main script as module -->
+    <script type="module" src="js/main.js"></script>
+</body>
+
+</html>
