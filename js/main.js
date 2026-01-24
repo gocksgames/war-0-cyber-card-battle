@@ -143,6 +143,12 @@ ui.elements.resetBtn.addEventListener('click', () => {
     game.initializeGame();
     ui.resetUI();
     ui.renderReinforcements(game);
+
+    // Hide game result summary
+    const resultSummary = document.getElementById('game-result-summary');
+    if (resultSummary) {
+        resultSummary.style.display = 'none';
+    }
 });
 
 function endGame() {
@@ -173,6 +179,48 @@ function endGame() {
 
     // Update game history (persists across resets)
     updateGameHistory(gameResult);
+
+    // Show game result summary in left sidebar
+    const resultSummary = document.getElementById('game-result-summary');
+    const resultMessage = document.getElementById('result-message');
+    const leftOutcome = document.getElementById('left-outcome');
+    const centerOutcome = document.getElementById('center-outcome');
+    const rightOutcome = document.getElementById('right-outcome');
+
+    if (resultSummary && resultMessage) {
+        // Set result message
+        if (gameResult === 'win') {
+            resultMessage.textContent = `YOU WIN (${p1Wins}-${p2Wins})`;
+            resultSummary.className = 'game-result-summary win';
+        } else if (gameResult === 'loss') {
+            resultMessage.textContent = `CPU WINS (${p2Wins}-${p1Wins})`;
+            resultSummary.className = 'game-result-summary loss';
+        } else {
+            resultMessage.textContent = 'DRAW';
+            resultSummary.className = 'game-result-summary draw';
+        }
+
+        // Set lane outcomes
+        ['left', 'center', 'right'].forEach(lane => {
+            const laneData = game.lanes[lane];
+            const outcomeEl = lane === 'left' ? leftOutcome : lane === 'center' ? centerOutcome : rightOutcome;
+
+            if (outcomeEl) {
+                if (laneData.score1 > laneData.score2) {
+                    outcomeEl.textContent = `WIN (${laneData.score1}-${laneData.score2})`;
+                    outcomeEl.className = 'lane-outcome win';
+                } else if (laneData.score2 > laneData.score1) {
+                    outcomeEl.textContent = `LOSS (${laneData.score1}-${laneData.score2})`;
+                    outcomeEl.className = 'lane-outcome loss';
+                } else {
+                    outcomeEl.textContent = `DRAW (${laneData.score1}-${laneData.score2})`;
+                    outcomeEl.className = 'lane-outcome draw';
+                }
+            }
+        });
+
+        resultSummary.style.display = 'block';
+    }
 
     // Game result now tracked in history only - no popup message
 }

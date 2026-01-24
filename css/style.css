@@ -1147,4 +1147,85 @@ input:checked+.slider:before {
 
 .loss-count {
     color: #f87171;
+}/* Game Result Summary */
+.game-result-summary {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px solid;
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    margin-top: 0.5rem;
+}
+
+.game-result-summary.win {
+    border-color: #4ade80;
+    background: rgba(74, 222, 128, 0.1);
+}
+
+.game-result-summary.loss {
+    border-color: #f87171;
+    background: rgba(248, 113, 113, 0.1);
+}
+
+.game-result-summary.draw {
+    border-color: #fbbf24;
+    background: rgba(251, 191, 36, 0.1);
+}
+
+.result-message {
+    font-family: var(--font-header);
+    font-size: 1.5rem;
+    font-weight: 900;
+    text-align: center;
+    margin-bottom: 0.75rem;
+    letter-spacing: 0.1em;
+}
+
+.game-result-summary.win .result-message {
+    color: #4ade80;
+    text-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+}
+
+.game-result-summary.loss .result-message {
+    color: #f87171;
+    text-shadow: 0 0 10px rgba(248, 113, 113, 0.5);
+}
+
+.game-result-summary.draw .result-message {
+    color: #fbbf24;
+    text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+}
+
+.result-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.lane-result {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+}
+
+.lane-name {
+    color: var(--text-secondary);
+    font-weight: 700;
+}
+
+.lane-outcome {
+    font-weight: 700;
+}
+
+.lane-outcome.win {
+    color: #4ade80;
+}
+
+.lane-outcome.loss {
+    color: #f87171;
+}
+
+.lane-outcome.draw {
+    color: #fbbf24;
 }
