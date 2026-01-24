@@ -72,4 +72,10 @@ function renderGameHistory() {
     if (lossCount) lossCount.textContent = losses;
 }
 
-export { updateGameHistory, renderGameHistory, loadGameHistory };
+function clearGameHistory() {
+    gameHistory = [];
+    saveGameHistory();
+    renderGameHistory();
+}
+
+export { updateGameHistory, renderGameHistory, loadGameHistory, clearGameHistory };

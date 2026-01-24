@@ -1,7 +1,7 @@
 
 import { GameState } from './game-engine.js';
 import { UIController } from './ui-controller.js';
-import { updateGameHistory, renderGameHistory, loadGameHistory } from './game-history.js';
+import { updateGameHistory, renderGameHistory, loadGameHistory, clearGameHistory } from './game-history.js';
 
 const game = new GameState();
 const ui = new UIController();
@@ -11,6 +11,16 @@ game.initializeGame();
 ui.resetUI();
 ui.renderReinforcements(game);
 loadGameHistory(); // Load saved game history
+
+// Clear history button
+const clearHistoryBtn = document.getElementById('clear-history-btn');
+if (clearHistoryBtn) {
+    clearHistoryBtn.addEventListener('click', () => {
+        if (confirm('Clear game history?')) {
+            clearGameHistory();
+        }
+    });
+}
 
 // Event Listeners
 // Event Listeners
