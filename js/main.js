@@ -174,10 +174,7 @@ function endGame() {
     // Update game history (persists across resets)
     updateGameHistory(gameResult);
 
-    ui.updateMessage(msg);
-
-    // Render Sidebar Report
-    ui.showSidebarResults(game);
+    // Game result now tracked in history only - no popup message
 }
 
 // AI Toggle
