@@ -1,6 +1,29 @@
-// Game History Tracker
-const gameHistory = [];
+// Game History Tracker with localStorage persistence
+const STORAGE_KEY = 'war0_game_history';
+let gameHistory = [];
 const MAX_HISTORY = 10;
+
+// Load history from localStorage on init
+function loadGameHistory() {
+    try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            gameHistory = JSON.parse(stored);
+        }
+    } catch (e) {
+        console.error('Failed to load game history:', e);
+        gameHistory = [];
+    }
+    renderGameHistory();
+}
+
+function saveGameHistory() {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(gameHistory));
+    } catch (e) {
+        console.error('Failed to save game history:', e);
+    }
+}
 
 function updateGameHistory(result) {
     // result: 'win', 'loss', or 'draw'
@@ -11,6 +34,7 @@ function updateGameHistory(result) {
         gameHistory.shift();
     }
 
+    saveGameHistory();
     renderGameHistory();
 }
 
@@ -48,4 +72,4 @@ function renderGameHistory() {
     if (lossCount) lossCount.textContent = losses;
 }
 
-export { updateGameHistory, renderGameHistory };
+export { updateGameHistory, renderGameHistory, loadGameHistory };
