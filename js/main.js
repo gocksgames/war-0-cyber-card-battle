@@ -6,7 +6,9 @@ const game = new GameState();
 const ui = new UIController();
 
 // Init
-game.startNewGame();
+game.initializeGame();
+ui.resetUI();
+ui.renderReinforcements(game);
 
 // Event Listeners
 // Event Listeners
@@ -27,7 +29,8 @@ game.startNewGame();
                 const pMove = result.playerMove;
                 const pEl = ui.getLaneElements(pMove.lane);
                 ui.renderCard(pMove.card, pEl.p1Slot);
-                ui.addToHistory(pMove.card, 'p1', pMove.lane);
+                ui.updateLaneHistory(pMove.lane, game.lanes[pMove.lane].history);
+
                 // Score p1
                 if (pEl.p1Score) ui.animateValue(pEl.p1Score, parseInt(pEl.p1Score.innerText), pMove.score, 300);
 
@@ -35,7 +38,13 @@ game.startNewGame();
                 const cMove = result.cpuMove;
                 const cEl = ui.getLaneElements(cMove.lane);
                 ui.renderCard(cMove.card, cEl.p2Slot);
-                ui.addToHistory(cMove.card, 'p2', cMove.lane);
+                // History update already done via full lane update above (it contains both p1 and p2 moves now?)
+                // Actually pMove.lane and cMove.lane might be different!
+                if (pMove.lane !== cMove.lane) {
+                    ui.updateLaneHistory(cMove.lane, game.lanes[cMove.lane].history);
+                } else {
+                    // If same lane, we already updated it.
+                }
                 // Score p2
                 if (cEl.p2Score) ui.animateValue(cEl.p2Score, parseInt(cEl.p2Score.innerText), cMove.score, 300);
 
@@ -85,6 +94,8 @@ game.startNewGame();
                 if (ui.elements.remainingCount) {
                     ui.elements.remainingCount.textContent = `${result.cardsRemaining} Cards`;
                 }
+
+                ui.renderReinforcements(game);
             }
 
             if (game.isGameOver) {
@@ -103,26 +114,25 @@ ui.elements.simBtn.addEventListener('click', () => {
         const results = game.simulateRestOfGame();
 
         // Populate history for ALL simulated rounds
-        results.forEach(round => {
-            ui.addToHistory(round.card1, round.card2, round.lane);
-            ui.updateScores(round.score1, round.score2, round.lane); // Update score live for animation effect? Or just valid final
+        // Note: We don't update scores per round to avoid animation race conditions
 
-            // Only render final card visual for the lane that was last played? 
-            // Or maybe just show the last played cards in their respective lanes?
-            const laneEls = ui.getLaneElements(round.lane);
-            ui.renderCard(round.card1, laneEls.p1Slot);
-            ui.renderCard(round.card2, laneEls.p2Slot);
+        // Mass update all lanes histories and scores at end of sim
+        ['left', 'center', 'right'].forEach(lane => {
+            ui.updateLaneHistory(lane, game.lanes[lane].history);
+            ui.updateScores(game.lanes[lane].score1, game.lanes[lane].score2, lane, true); // Immediate update
         });
 
         if (ui.elements.remainingCount) ui.elements.remainingCount.textContent = `0 Cards`;
 
+        ui.renderReinforcements(game); // Final State
         endGame();
     }, 50);
 });
 
 ui.elements.resetBtn.addEventListener('click', () => {
-    game.startNewGame();
+    game.initializeGame();
     ui.resetUI();
+    ui.renderReinforcements(game);
 });
 
 function endGame() {
@@ -144,35 +154,8 @@ function endGame() {
 
     ui.updateMessage(msg);
 
-    const sidebar = document.getElementById('sidebar-results');
-    if (sidebar) {
-        sidebar.innerHTML = `
-            <h3>BATTLE REPORT</h3>
-            <div class="result-line">
-                <span>LEFT</span>
-                <span class="${game.lanes.left.score1 > game.lanes.left.score2 ? 'res-win' : (game.lanes.left.score1 < game.lanes.left.score2 ? 'res-loss' : 'res-draw')}">
-                    ${game.lanes.left.score1}:${game.lanes.left.score2}
-                </span>
-            </div>
-            <div class="result-line">
-                <span>CENTRAL</span>
-                <span class="${game.lanes.center.score1 > game.lanes.center.score2 ? 'res-win' : (game.lanes.center.score1 < game.lanes.center.score2 ? 'res-loss' : 'res-draw')}">
-                    ${game.lanes.center.score1}:${game.lanes.center.score2}
-                </span>
-            </div>
-            <div class="result-line">
-                <span>RIGHT</span>
-                <span class="${game.lanes.right.score1 > game.lanes.right.score2 ? 'res-win' : (game.lanes.right.score1 < game.lanes.right.score2 ? 'res-loss' : 'res-draw')}">
-                    ${game.lanes.right.score1}:${game.lanes.right.score2}
-                </span>
-            </div>
-            <div class="divider"></div>
-            <div class="result-line" style="font-size: 1.1rem; color: ${p1Wins > p2Wins ? '#4ade80' : (p2Wins > p1Wins ? '#f87171' : 'white')}">
-                <span>RESULT</span>
-                <span>${p1Wins > p2Wins ? 'VICTORY' : (p2Wins > p1Wins ? 'DEFEAT' : 'STALEMATE')}</span>
-            </div>
-        `;
-    }
+    // Render Sidebar Report
+    ui.showSidebarResults(game);
 }
 
 // AI Toggle

@@ -20,7 +20,7 @@
         <aside class="sidebar">
             <div class="sidebar-header">
                 <h1>WAR.0</h1>
-                <div class="deck-status">0 Cards</div>
+                <div class="deck-status" id="remaining-count">0 Cards</div>
             </div>
 
             <div class="primary-controls">
@@ -47,6 +47,7 @@
         </aside>
 
         <!-- Center Panel: Battle Arena -->
+        <!-- Center Panel: Battle Arena -->
         <main class="battle-arena">
             <!-- Left Flank -->
             <div class="lane" id="lane-left">
@@ -68,10 +69,11 @@
                         <div class="diff-badge" id="diff-left">0</div>
                     </div>
 
-                    <!-- Player Zone (Card -> Score -> History Bottom) -->
+                    <!-- Player Zone (Score -> Card -> History) -->
                     <div class="unit-zone p1-unit">
-                        <div id="p1-card-slot-left" class="card-slot"></div>
+                        <!-- Reordered: Score ABOVE Card -->
                         <div class="score-tag p1-score" id="p1-score-left">0</div>
+                        <div id="p1-card-slot-left" class="card-slot"></div>
                         <div id="p1-history-left" class="history-grid p1-history"></div>
                     </div>
                 </div>
@@ -104,8 +106,8 @@
 
                     <!-- Player -->
                     <div class="unit-zone p1-unit">
-                        <div id="p1-card-slot-center" class="card-slot"></div>
                         <div class="score-tag p1-score" id="p1-score-center">0</div>
+                        <div id="p1-card-slot-center" class="card-slot"></div>
                         <div id="p1-history-center" class="history-grid p1-history"></div>
                     </div>
                 </div>
@@ -137,8 +139,8 @@
 
                     <!-- Player -->
                     <div class="unit-zone p1-unit">
-                        <div id="p1-card-slot-right" class="card-slot"></div>
                         <div class="score-tag p1-score" id="p1-score-right">0</div>
+                        <div id="p1-card-slot-right" class="card-slot"></div>
                         <div id="p1-history-right" class="history-grid p1-history"></div>
                     </div>
                 </div>
@@ -150,6 +152,29 @@
 
             <div id="message-area" class="message-area"></div>
         </main>
+
+        <!-- Right Panel: Reinforcements -->
+        <aside class="reinforcements sidebar">
+            <div class="sidebar-header reinf-header">
+                <h2>INTEL</h2>
+            </div>
+
+            <!-- CPU Deck Grid -->
+            <div class="reinf-section">
+                <h3>CPU FORCE (<span id="p2-deck-count">0</span>)</h3>
+                <div class="deck-grid" id="p2-deck-grid"></div>
+                <div class="deck-sum">THREAT: <span id="p2-deck-sum">0</span></div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Player Deck Grid -->
+            <div class="reinf-section">
+                <h3>YOUR FORCE (<span id="p1-deck-count">0</span>)</h3>
+                <div class="deck-grid" id="p1-deck-grid"></div>
+                <div class="deck-sum">POWER: <span id="p1-deck-sum">0</span></div>
+            </div>
+        </aside>
 
 
     </div>

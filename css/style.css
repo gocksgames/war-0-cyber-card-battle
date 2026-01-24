@@ -9,7 +9,8 @@
     /* Colors */
     --bg-color: #0f172a;
     --panel-bg: #1e293b;
-    --sidebar-bg: #111827;
+    --sidebar-bg: #0b101b;
+    /* Darker Sidebar */
     --accent-primary: #38bdf8;
     /* Sky Blue */
     --accent-secondary: #f472b6;
@@ -17,6 +18,12 @@
     --text-primary: #f1f5f9;
     --text-secondary: #94a3b8;
     --border-color: #334155;
+
+    /* Reinforcements Theme */
+    --reinf-bg: #064e3b;
+    /* Dark Green */
+    --reinf-header-color: #34d399;
+    /* Light Green */
 
     /* Spacing */
     --radius-sm: 4px;
@@ -41,13 +48,14 @@ body {
 }
 
 .app-container {
-    display: flex;
+    display: grid;
+    grid-template-columns: 280px 1fr 340px;
+    /* 3 Column Layout */
     height: 100%;
 }
 
-/* Sidebar */
+/* Sidebar (Left & Right base styles) */
 .sidebar {
-    width: 280px;
     background: var(--sidebar-bg);
     padding: 1.5rem;
     display: flex;
@@ -55,6 +63,13 @@ body {
     gap: 1.5rem;
     border-right: 1px solid var(--border-color);
     z-index: 10;
+    overflow-y: auto;
+}
+
+.reinforcements {
+    background: var(--reinf-bg);
+    border-left: 1px solid #059669;
+    border-right: none;
 }
 
 .sidebar-header {
@@ -64,6 +79,17 @@ body {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+}
+
+.reinf-header {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: #059669;
+}
+
+.reinf-header h2 {
+    font-family: var(--font-header);
+    color: var(--reinf-header-color);
+    letter-spacing: 0.1em;
 }
 
 .sidebar-header h1 {
@@ -208,8 +234,6 @@ input:checked+.slider:before {
     position: relative;
     padding: 0.5rem;
     background: radial-gradient(circle at center, #25252d 0%, #1e1e24 70%);
-    flex: 1;
-    /* Take remaining height */
     overflow: hidden;
     /* Prevent scrolling if possible */
 }
@@ -382,9 +406,12 @@ input:checked+.slider:before {
 
 .score-tag {
     font-family: var(--font-header);
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin: 0.25rem 0;
+    font-size: 3rem;
+    /* Significantly Larger */
+    font-weight: 900;
+    margin: 0.5rem 0;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    line-height: 1;
 }
 
 .p2-score {
@@ -538,4 +565,79 @@ input:checked+.slider:before {
 
 .mini-suit {
     font-size: 0.4rem;
+}
+
+/* Reinforcements Grid & History Matrix */
+.reinf-section {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.reinf-section h3 {
+    font-family: var(--font-header);
+    font-size: 0.9rem;
+    color: var(--reinf-header-color);
+    margin-bottom: 0.25rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* 4x9 Grid Layout */
+.card-matrix {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    /* 9 Ranks (10..2) */
+    gap: 2px;
+    margin-bottom: 0.25rem;
+}
+
+.matrix-slot {
+    aspect-ratio: 2/3;
+    background: #1a1a1a;
+    border-radius: 2px;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    line-height: 1;
+    opacity: 0.2;
+    /* Dim by default */
+    transition: opacity 0.3s;
+}
+
+.matrix-slot.active {
+    opacity: 1;
+    background: #e2e2e8;
+    color: #000;
+}
+
+.matrix-slot.red.active {
+    color: var(--danger);
+}
+
+.matrix-slot.black.active {
+    color: #1a1a1a;
+}
+
+.deck-sum {
+    text-align: right;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 0.8rem;
+    /* Smaller than difference */
+    color: #fff;
+    opacity: 0.6;
+}
+
+/* Override History Grids to use Matrix */
+.history-grid {
+    /* Reset old styles */
+    display: block;
+    width: 100%;
 }

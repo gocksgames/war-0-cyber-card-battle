@@ -1,4 +1,6 @@
 
+import { SUITS, RANKS } from './game-engine.js';
+
 export class UIController {
     constructor() {
         // Cache elements dynamically or just grab them when needed since structure is repetitive
@@ -47,10 +49,22 @@ export class UIController {
         slotElement.appendChild(cardDiv);
     }
 
-    updateScores(s1, s2, lane) {
+    updateScores(s1, s2, lane, immediate = false) {
         const els = this.getLaneElements(lane);
-        if (els.p1Score) this.animateValue(els.p1Score, parseInt(els.p1Score.innerText), s1, 300);
-        if (els.p2Score) this.animateValue(els.p2Score, parseInt(els.p2Score.innerText), s2, 300);
+
+        if (immediate) {
+            if (els.p1Score) {
+                if (els.p1Score._animId) window.cancelAnimationFrame(els.p1Score._animId);
+                els.p1Score.innerText = s1;
+            }
+            if (els.p2Score) {
+                if (els.p2Score._animId) window.cancelAnimationFrame(els.p2Score._animId);
+                els.p2Score.innerText = s2;
+            }
+        } else {
+            if (els.p1Score) this.animateValue(els.p1Score, parseInt(els.p1Score.innerText), s1, 300);
+            if (els.p2Score) this.animateValue(els.p2Score, parseInt(els.p2Score.innerText), s2, 300);
+        }
 
         // Update Difference Badge & Dynamic Borders
         if (els.diffBadge) {
@@ -78,50 +92,31 @@ export class UIController {
     resetCardVisuals() {
         this.lanes.forEach(lane => {
             const els = this.getLaneElements(lane);
-            // Don't clear content, maybe? Or do we clear content?
-            // "if a card has not been drawn... grey it out".
-            // If we clear content, we can't grey it out (it's empty).
-            // So we should KEEP the old card if it wasn't updated?
-            // "move the drawn card to be closer... if a card has not been drawn... grey it out."
-            // This implies the card STAYS there but is greyed out.
-            // So we don't clear innerHTML.
             if (els.p1Slot) els.p1Slot.classList.remove('inactive');
             if (els.p2Slot) els.p2Slot.classList.remove('inactive');
         });
     }
 
+    // Deprecated addToHistory - replaced by updateLaneHistory, but keeping for safety if needed
     addToHistory(card, player, lane) {
-        // player: 'p1' or 'p2'
-        const els = this.getLaneElements(lane);
-
-        const mini = document.createElement('div');
-        mini.className = `mini-card ${card.color}`;
-        mini.innerHTML = `${card.rank}<span class="mini-suit">${card.suit}</span>`;
-
-        const targetContainer = player === 'p1' ? els.p1History : els.p2History;
-
-        if (targetContainer) {
-            // "move that below the player card and above theCPU card"
-            // For P2 (Top), 'appendChild' adds to bottom (closest to center).
-            // For P1 (Bottom), 'prepend'? No, 'appendChild' adds to bottom (furthest from center).
-            // Request: "History box... move that below the player card and above the CPU card" -> CENTER area.
-            // But we split them.
-            // Let's just append for now.
-            targetContainer.appendChild(mini);
-        }
+        // Fallback or legacy support
     }
 
     animateValue(obj, start, end, duration) {
+        if (obj._animId) window.cancelAnimationFrame(obj._animId);
+
         let startTimestamp = null;
         const step = (timestamp) => {
             if (!startTimestamp) startTimestamp = timestamp;
             const progress = Math.min((timestamp - startTimestamp) / duration, 1);
             obj.innerHTML = Math.floor(progress * (end - start) + start);
             if (progress < 1) {
-                window.requestAnimationFrame(step);
+                obj._animId = window.requestAnimationFrame(step);
+            } else {
+                obj._animId = null;
             }
         };
-        window.requestAnimationFrame(step);
+        obj._animId = window.requestAnimationFrame(step);
     }
 
     updateMessage(msg, type = 'info') {
@@ -131,22 +126,39 @@ export class UIController {
         }
     }
 
-    showSidebarResults(results) {
+    showSidebarResults(game) {
         const sidebar = document.getElementById('sidebar-results');
         if (!sidebar) return;
 
-        // Count triumphs
+        // Calculate wins from game state
         let p1Wins = 0;
         let p2Wins = 0;
-        let p1Total = 0;
-        let p2Total = 0;
 
-        // We need final scores, not just history.
-        // But main.js passes results array. 
-        // We can access game state ideally, but let's just use what we have or pass game state.
+        ['left', 'center', 'right'].forEach(lane => {
+            if (game.lanes[lane].score1 > game.lanes[lane].score2) p1Wins++;
+            else if (game.lanes[lane].score2 > game.lanes[lane].score1) p2Wins++;
+        });
 
-        sidebar.innerHTML = `<h3>MISSION REPORT</h3>`;
-        // ... Logic in main.js will call specific updates or we just put simple text here.
+        // Determine result text/color
+        const resultText = p1Wins > p2Wins ? 'VICTORY' : (p2Wins > p1Wins ? 'DEFEAT' : 'STALEMATE');
+        const resultColor = p1Wins > p2Wins ? '#4ade80' : (p2Wins > p1Wins ? '#f87171' : 'white');
+
+        sidebar.innerHTML = `
+            <h3>BATTLE REPORT</h3>
+            ${['left', 'center', 'right'].map(lane => `
+                <div class="result-line">
+                    <span>${lane.toUpperCase()}</span>
+                    <span class="${game.lanes[lane].score1 > game.lanes[lane].score2 ? 'res-win' : (game.lanes[lane].score1 < game.lanes[lane].score2 ? 'res-loss' : 'res-draw')}">
+                        ${game.lanes[lane].score1}:${game.lanes[lane].score2}
+                    </span>
+                </div>
+            `).join('')}
+            <div class="divider"></div>
+            <div class="result-line" style="font-size: 1.1rem; color: ${resultColor}">
+                <span>RESULT</span>
+                <span>${resultText}</span>
+            </div>
+        `;
     }
 
     setButtonsEnabled(enabled) {
@@ -187,5 +199,75 @@ export class UIController {
 
         if (this.elements.remainingCount) this.elements.remainingCount.textContent = '36 Cards';
         if (this.elements.messageArea) this.elements.messageArea.textContent = '';
+    }
+
+    // Generic Helper for 4x9 Matrix
+    renderCardMatrix(container, cardList, activeIfInList = true) {
+        if (!container) return;
+        container.innerHTML = '';
+        container.className = 'card-matrix';
+
+        // Sort Order: Rows = Suits, Cols = Ranks (10..2)
+        // Suits: Hearts, Spades, Diamonds, Clubs
+        const suitOrder = ['♥', '♠', '♦', '♣'];
+        // Ranks: 10 downto 2
+        const rankOrder = ['10', '9', '8', '7', '6', '5', '4', '3', '2'];
+
+        let totalValue = 0;
+
+        suitOrder.forEach(suit => {
+            rankOrder.forEach(rank => {
+                const value = parseInt(rank);
+
+                // Check presence
+                const present = cardList.some(c => c.suit === suit && c.rank === rank);
+                // For Reinforcements (activeIfInList=true): Present = Active.
+                // For History (activeIfInList=true): Present = Active (Played)
+                const isActive = activeIfInList ? present : !present;
+
+                const slot = document.createElement('div');
+                const color = (suit === '♥' || suit === '♦') ? 'red' : 'black';
+
+                // Opacity handled by basic CSS, but 'active' class toggles full opacity
+                slot.className = `matrix-slot ${color} ${isActive ? 'active' : ''}`;
+                slot.innerHTML = `${rank}<div class="mini-suit">${suit}</div>`;
+
+                container.appendChild(slot);
+
+                if (present) totalValue += value;
+            });
+        });
+
+        return totalValue;
+    }
+
+    renderReinforcements(game) {
+        const p1Grid = document.getElementById('p1-deck-grid');
+        const p2Grid = document.getElementById('p2-deck-grid');
+        const p1Count = document.getElementById('p1-deck-count');
+        const p2Count = document.getElementById('p2-deck-count');
+        const p1Sum = document.getElementById('p1-deck-sum');
+        const p2Sum = document.getElementById('p2-deck-sum');
+
+        // Reinforcements: "Available" cards are in the deck list -> Active
+        const p1Total = this.renderCardMatrix(p1Grid, game.player1Deck, true);
+        if (p1Count) p1Count.textContent = game.player1Deck.length;
+        if (p1Sum) p1Sum.textContent = p1Total;
+
+        const p2Total = this.renderCardMatrix(p2Grid, game.player2Deck, true);
+        if (p2Count) p2Count.textContent = game.player2Deck.length;
+        if (p2Sum) p2Sum.textContent = p2Total;
+    }
+
+    updateLaneHistory(lane, historyData) {
+        const els = this.getLaneElements(lane);
+        if (!els.p1History || !els.p2History) return;
+
+        const p1Cards = historyData.filter(h => h.player === 'p1').map(h => h.card);
+        const p2Cards = historyData.filter(h => h.player === 'p2').map(h => h.card);
+
+        // History: "Played" cards are in the list -> Active
+        this.renderCardMatrix(els.p1History, p1Cards, true);
+        this.renderCardMatrix(els.p2History, p2Cards, true);
     }
 }
