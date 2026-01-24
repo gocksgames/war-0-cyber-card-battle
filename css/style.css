@@ -32,7 +32,8 @@ body {
 
 .game-stage {
     display: grid;
-    grid-template-columns: var(--panel-width) 1fr var(--panel-width);
+    /* Remove right panel from grid */
+    grid-template-columns: var(--panel-width) 1fr;
     width: 100%;
     height: 100%;
 }
@@ -49,8 +50,8 @@ body {
 }
 
 .right-panel {
-    border-right: none;
-    border-left: 1px solid var(--glass-border);
+    /* Right panel is now hidden or overlay */
+    display: none;
 }
 
 .panel-header {
@@ -140,6 +141,7 @@ body {
     gap: 2rem;
     position: relative;
     perspective: 1000px;
+    padding: 2rem;
 }
 
 .vs-badge {
@@ -159,28 +161,38 @@ body {
 .player-zone {
     display: flex;
     flex-direction: column;
+    /* Changed to column to hold Label + Content */
     align-items: center;
     gap: 0.5rem;
     transition: transform 0.3s ease;
     z-index: 1;
+    width: 100%;
+}
+
+.zone-content {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
 }
 
 /* P2 (CPU) - Top, Smaller, Background */
 .p2-zone {
-    transform: scale(0.85) translateY(-20px);
-    opacity: 0.8;
-    filter: brightness(0.9);
+    transform: scale(0.9);
+    opacity: 0.9;
+    /* filter: brightness(0.9); REMOVED brightness for better visibility of score/history */
     margin-bottom: auto;
     /* Push to top */
-    padding-top: 4rem;
+    /* padding-top: 2rem; */
 }
 
 /* P1 (User) - Bottom, Larger, Foreground */
 .p1-zone {
-    transform: scale(1.1) translateY(-20px);
+    transform: scale(1.0);
     margin-top: auto;
     /* Push to bottom */
-    padding-bottom: 4rem;
+    /* padding-bottom: 2rem; */
 }
 
 .card-slot {
@@ -193,6 +205,7 @@ body {
     justify-content: center;
     align-items: center;
     position: relative;
+    flex-shrink: 0; /* Don't shrink card slot */
 }
 
 /* Cards */
@@ -251,61 +264,68 @@ body {
     font-size: 1.5rem;
 }
 
-/* Scoreboard (Right) */
-.score-board {
+/* History Container & Score */
+.history-container {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1rem;
+    width: 250px; /* Fixed width for history area */
 }
 
-.score-card {
+.p2-history-container {
+    /* CPU: Score below history (Visual logic: Card match History match Score) */
+    /* Request: Sum below it for CPU. */
+    flex-direction: column; 
+    /* Actually prompt says: "sum above it for player 1 and below it for CPU" */
+}
+
+.p1-history-container {
+    /* Player: Sum above it */
+    flex-direction: column;
+}
+
+.score-display {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.5rem 1rem;
     background: rgba(0, 0, 0, 0.2);
-    padding: 1.5rem;
-    border-radius: 12px;
+    border-radius: 8px;
     border: 1px solid var(--glass-border);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    width: 100%;
+    justify-content: space-between;
 }
 
-.score-card .label {
+.score-display .label {
     font-size: 0.75rem;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
     color: var(--text-secondary);
-    margin-bottom: 0.25rem;
+    font-weight: 600;
 }
 
-.score-card .score-value {
-    font-size: 2.5rem;
+.score-display .score-value {
+    font-size: 1.5rem;
     font-weight: 800;
-    font-variant-numeric: tabular-nums;
     color: var(--text-primary);
 }
 
-.p1-score .score-value {
-    color: var(--accent-primary);
-}
+#p1-score { color: var(--accent-primary); }
+#p2-score { color: #ef4444; }
 
-.p2-score .score-value {
-    color: var(--danger);
-}
 
 /* History Grid */
 .history-grid {
     display: flex;
     flex-wrap: wrap;
     align-content: flex-start;
-    /* Ensure rows stack tightly */
     gap: 4px;
-    margin-top: 1rem;
     width: 100%;
-    justify-content: center;
-    max-height: 250px;
-    /* Limit height */
+    height: 180px; /* Fixed height matching approximate card height minus score */
     overflow-y: auto;
-    /* Allow Scroll */
-    padding-bottom: 2rem;
+    background: rgba(0,0,0,0.1);
+    border-radius: 8px;
+    padding: 4px;
+    border: 1px solid var(--glass-border);
 }
 
 /* Custom Scrollbar */
@@ -323,14 +343,14 @@ body {
 }
 
 .mini-card {
-    width: 22px;
-    height: 30px;
+    width: 26px; /* Slightly larger */
+    height: 36px;
     background: #fff;
     border-radius: 3px;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     font-weight: 800;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -362,8 +382,6 @@ body {
     color: #1a1a1a;
 }
 
-/* Use Danger colour for enemy */
-
 /* Messages */
 .message-area {
     height: 2rem;
@@ -371,48 +389,6 @@ body {
     text-transform: uppercase;
     color: var(--accent-secondary);
     letter-spacing: 0.2em;
-}
-
-/* Simulation Stats */
-.simulation-stats {
-    margin-top: auto;
-    background: rgba(0, 0, 0, 0.3);
-    padding: 1.5rem;
-    border-radius: 8px;
-}
-
-.simulation-stats.hidden {
-    display: none;
-}
-
-.simulation-stats h3 {
-    margin-bottom: 1rem;
-    color: var(--text-secondary);
-    font-size: 0.875rem;
-    text-transform: uppercase;
-}
-
-.stat-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-}
-
-.stat-row span:last-child {
-    color: var(--text-primary);
-    font-weight: 600;
-}
-
-.stat-total {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--glass-border);
-    display: flex;
-    justify-content: space-between;
-    font-weight: 800;
-    color: var(--accent-secondary);
 }
 
 /* Buttons */

@@ -41,6 +41,11 @@ ui.elements.simBtn.addEventListener('click', () => {
     setTimeout(() => {
         const results = game.simulateRestOfGame();
 
+        // Populate history for ALL simulated rounds
+        results.forEach(round => {
+            ui.addToHistory(round.card1, round.card2);
+        });
+
         // Render last cards
         if (results.length > 0) {
             const lastRound = results[results.length - 1];
