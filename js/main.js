@@ -183,9 +183,29 @@ if (aiToggle) {
 
 // Keyboard Shortcuts
 document.addEventListener('keydown', (e) => {
+    // Check if typing in input field
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    const key = e.key.toLowerCase();
+
+    // R - Reset/New Game (works anytime)
+    if (key === 'r') {
+        e.preventDefault();
+        document.getElementById('reset-btn').click();
+        return;
+    }
+
+    // P - Simulate (only if game not over)
+    if (key === 'p' && !game.isGameOver) {
+        e.preventDefault();
+        document.getElementById('sim-btn').click();
+        return;
+    }
+
+    // Lane shortcuts (only if game not over)
     if (game.isGameOver) return;
 
-    switch (e.key.toLowerCase()) {
+    switch (key) {
         case 'a':
             document.getElementById('draw-btn-left').click();
             break;
