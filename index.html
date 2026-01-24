@@ -45,8 +45,8 @@
 
                 <div class="divider"></div>
 
-                <button id="sim-btn" class="btn secondary">SIMULATE</button>
-                <button id="reset-btn" class="btn tertiary">RESET</button>
+                <button id="sim-btn" class="btn secondary">SIMULATE <span class="shortcut-hint">(P)</span></button>
+                <button id="reset-btn" class="btn tertiary">NEW GAME <span class="shortcut-hint">(R)</span></button>
             </div>
 
             <!-- Sidebar Results -->
@@ -166,6 +166,16 @@
         <aside class="reinforcements sidebar">
             <div class="lane-header">
                 <div class="lane-title">RECON</div>
+            </div>
+
+            <!-- Game History Tracker -->
+            <div class="game-history">
+                <div class="history-label">LAST 10 GAMES</div>
+                <div class="history-icons" id="game-history-icons"></div>
+                <div class="history-stats">
+                    <span class="win-count">W: <span id="win-count">0</span></span>
+                    <span class="loss-count">L: <span id="loss-count">0</span></span>
+                </div>
             </div>
 
             <div class="battle-zone">

@@ -1,6 +1,7 @@
 
 import { GameState } from './game-engine.js';
 import { UIController } from './ui-controller.js';
+import { updateGameHistory, renderGameHistory } from './game-history.js';
 
 const game = new GameState();
 const ui = new UIController();
