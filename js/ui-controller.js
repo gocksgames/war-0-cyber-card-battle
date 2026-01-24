@@ -19,6 +19,7 @@ export class UIController {
 
     getLaneElements(lane) {
         return {
+            laneContainer: document.getElementById(`lane-${lane}`),
             p1Slot: document.getElementById(`p1-card-slot-${lane}`),
             p2Slot: document.getElementById(`p2-card-slot-${lane}`),
             p1Score: document.getElementById(`p1-score-${lane}`),
@@ -51,19 +52,25 @@ export class UIController {
         if (els.p1Score) this.animateValue(els.p1Score, parseInt(els.p1Score.innerText), s1, 300);
         if (els.p2Score) this.animateValue(els.p2Score, parseInt(els.p2Score.innerText), s2, 300);
 
-        // Update Difference Badge
+        // Update Difference Badge & Dynamic Borders
         if (els.diffBadge) {
             const diff = s1 - s2;
             els.diffBadge.textContent = diff === 0 ? '0' : (diff > 0 ? `+${diff}` : diff);
 
-            // Remove old classes
+            // Remove old classes from Badge
             els.diffBadge.classList.remove('diff-positive', 'diff-negative');
+            // Remove old classes from Lane
+            if (els.laneContainer) {
+                els.laneContainer.classList.remove('winning-lane', 'losing-lane');
+            }
 
             // Add new classes logic
             if (diff > 0) {
                 els.diffBadge.classList.add('diff-positive');
+                if (els.laneContainer) els.laneContainer.classList.add('winning-lane');
             } else if (diff < 0) {
                 els.diffBadge.classList.add('diff-negative');
+                if (els.laneContainer) els.laneContainer.classList.add('losing-lane');
             }
         }
     }
@@ -71,17 +78,26 @@ export class UIController {
     addToHistory(card1, card2, lane) {
         const els = this.getLaneElements(lane);
 
-        // Player 1
+        // Player 1 (Bottom History)
         const mini1 = document.createElement('div');
         mini1.className = `mini-card ${card1.color}`;
         mini1.innerHTML = `${card1.rank}<span class="mini-suit">${card1.suit}</span>`;
-        if (els.p1History) els.p1History.appendChild(mini1);
+        if (els.p1History) {
+            // els.p1History.insertBefore(mini1, els.p1History.firstChild); // Newest first?
+            // Actually user said "box... regardless... move below player... above cpu".
+            // We have unified container. P1 history is bottom grid. P2 is top grid.
+            // Let's prepend to show newest cards near the center?
+            // Actually append is standard for "history". Let's stick to append for now.
+            els.p1History.appendChild(mini1);
+        }
 
-        // Player 2
+        // Player 2 (Top History)
         const mini2 = document.createElement('div');
         mini2.className = `mini-card ${card2.color}`;
         mini2.innerHTML = `${card2.rank}<span class="mini-suit">${card2.suit}</span>`;
-        if (els.p2History) els.p2History.appendChild(mini2);
+        if (els.p2History) {
+            els.p2History.appendChild(mini2);
+        }
     }
 
     animateValue(obj, start, end, duration) {
@@ -104,6 +120,24 @@ export class UIController {
         }
     }
 
+    showSidebarResults(results) {
+        const sidebar = document.getElementById('sidebar-results');
+        if (!sidebar) return;
+
+        // Count triumphs
+        let p1Wins = 0;
+        let p2Wins = 0;
+        let p1Total = 0;
+        let p2Total = 0;
+
+        // We need final scores, not just history.
+        // But main.js passes results array. 
+        // We can access game state ideally, but let's just use what we have or pass game state.
+
+        sidebar.innerHTML = `<h3>MISSION REPORT</h3>`;
+        // ... Logic in main.js will call specific updates or we just put simple text here.
+    }
+
     setButtonsEnabled(enabled) {
         Object.values(this.elements.drawBtns).forEach(btn => {
             if (btn) {
@@ -116,10 +150,6 @@ export class UIController {
             this.elements.simBtn.disabled = !enabled;
             this.elements.simBtn.style.opacity = enabled ? '1' : '0.5';
         }
-    }
-
-    showSimulationResults(results) {
-        // Could do something fancy here, but history grid is enough for now.
     }
 
     resetUI() {
@@ -135,9 +165,15 @@ export class UIController {
                 els.diffBadge.textContent = '0';
                 els.diffBadge.classList.remove('diff-positive', 'diff-negative');
             }
+            if (els.laneContainer) {
+                els.laneContainer.classList.remove('winning-lane', 'losing-lane');
+            }
         });
 
         this.setButtonsEnabled(true);
+        const sidebar = document.getElementById('sidebar-results');
+        if (sidebar) sidebar.innerHTML = '';
+
         if (this.elements.remainingCount) this.elements.remainingCount.textContent = '36 Cards';
         if (this.elements.messageArea) this.elements.messageArea.textContent = '';
     }

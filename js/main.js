@@ -85,4 +85,36 @@ function endGame() {
     else msg = 'DRAW!';
 
     ui.updateMessage(msg);
+
+    // Sidebar Results
+    const sidebar = document.getElementById('sidebar-results');
+    if (sidebar) {
+        sidebar.innerHTML = `
+            <h3>BATTLE REPORT</h3>
+            <div class="result-line"><span>LEFT FLANK:</span> <span>${game.lanes.left.score1} vs ${game.lanes.left.score2}</span></div>
+            <div class="result-line"><span>FRONT:</span> <span>${game.lanes.center.score1} vs ${game.lanes.center.score2}</span></div>
+            <div class="result-line"><span>RIGHT FLANK:</span> <span>${game.lanes.right.score1} vs ${game.lanes.right.score2}</span></div>
+            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 1rem 0;">
+            <div class="result-line" style="font-weight: 800; font-size: 1.1rem; color: ${p1Wins > p2Wins ? '#4ade80' : (p2Wins > p1Wins ? '#f87171' : 'white')}">
+                RESULT: ${p1Wins > p2Wins ? 'VICTORY' : (p2Wins > p1Wins ? 'DEFEAT' : 'STALEMATE')}
+            </div>
+        `;
+    }
 }
+
+// Keyboard Shortcuts
+document.addEventListener('keydown', (e) => {
+    if (game.isGameOver) return;
+
+    switch (e.key.toLowerCase()) {
+        case 'a':
+            document.getElementById('draw-btn-left').click();
+            break;
+        case 's':
+            document.getElementById('draw-btn-center').click();
+            break;
+        case 'd':
+            document.getElementById('draw-btn-right').click();
+            break;
+    }
+});
