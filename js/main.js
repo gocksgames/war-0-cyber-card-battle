@@ -150,9 +150,21 @@ function endGame() {
     });
 
     let msg = '';
-    if (p1Wins > p2Wins) msg = `YOU WIN (${p1Wins}-${p2Wins})`;
-    else if (p2Wins > p1Wins) msg = `CPU WINS (${p2Wins}-${p1Wins})`;
-    else msg = 'DRAW!';
+    let gameResult = '';
+
+    if (p1Wins > p2Wins) {
+        msg = `YOU WIN (${p1Wins}-${p2Wins})`;
+        gameResult = 'win';
+    } else if (p2Wins > p1Wins) {
+        msg = `CPU WINS (${p2Wins}-${p1Wins})`;
+        gameResult = 'loss';
+    } else {
+        msg = 'DRAW!';
+        gameResult = 'draw';
+    }
+
+    // Update game history (persists across resets)
+    updateGameHistory(gameResult);
 
     ui.updateMessage(msg);
 
