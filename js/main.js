@@ -16,13 +16,71 @@ game.startNewGame();
         btn.addEventListener('click', () => {
             if (game.isGameOver) return;
 
+            // Updated: playRound returns complex object
             const result = game.playRound(lane);
+
             if (result) {
-                const laneEls = ui.getLaneElements(lane);
-                ui.renderCard(result.card1, laneEls.p1Slot);
-                ui.renderCard(result.card2, laneEls.p2Slot);
-                ui.addToHistory(result.card1, result.card2, lane);
-                ui.updateScores(result.score1, result.score2, lane);
+                // Clear ALL slots visuals first (to show fresh state)
+                ui.resetCardVisuals();
+
+                // 1. Handle Player Move
+                const pMove = result.playerMove;
+                const pEl = ui.getLaneElements(pMove.lane);
+                ui.renderCard(pMove.card, pEl.p1Slot);
+                ui.addToHistory(pMove.card, 'p1', pMove.lane);
+                // Score p1
+                if (pEl.p1Score) ui.animateValue(pEl.p1Score, parseInt(pEl.p1Score.innerText), pMove.score, 300);
+
+                // 2. Handle CPU Move
+                const cMove = result.cpuMove;
+                const cEl = ui.getLaneElements(cMove.lane);
+                ui.renderCard(cMove.card, cEl.p2Slot);
+                ui.addToHistory(cMove.card, 'p2', cMove.lane);
+                // Score p2
+                if (cEl.p2Score) ui.animateValue(cEl.p2Score, parseInt(cEl.p2Score.innerText), cMove.score, 300);
+
+                // 3. Update State Classes (Inactive/Active)
+                ['left', 'center', 'right'].forEach(l => {
+                    const el = ui.getLaneElements(l);
+
+                    // Player Slot Active?
+                    if (l !== pMove.lane) {
+                        el.p1Slot.classList.add('inactive');
+                    } else {
+                        el.p1Slot.classList.remove('inactive');
+                    }
+
+                    // CPU Slot Active?
+                    if (l !== cMove.lane) {
+                        el.p2Slot.classList.add('inactive');
+                    } else {
+                        el.p2Slot.classList.remove('inactive');
+                    }
+
+                    // Update Diff Badge for ALL lanes (scores might have changed)
+                    // We need to fetch current scores from game state strictly, 
+                    // or trust the DOM/Animation? 
+                    // Better: use game state. But result only returns active lanes scores.
+                    // Actually, we can just re-check diff for everyone based on Game Engine data?
+                    // But 'result' doesn't have all lanes data.
+                    // Access game.lanes direct?
+                    const globalLane = game.lanes[l];
+                    const diff = globalLane.score1 - globalLane.score2;
+
+                    if (el.diffBadge) {
+                        el.diffBadge.textContent = diff === 0 ? '0' : (diff > 0 ? `+${diff}` : diff);
+                        el.diffBadge.classList.remove('diff-positive', 'diff-negative');
+                        if (el.laneContainer) el.laneContainer.classList.remove('winning-lane', 'losing-lane');
+
+                        if (diff > 0) {
+                            el.diffBadge.classList.add('diff-positive');
+                            if (el.laneContainer) el.laneContainer.classList.add('winning-lane');
+                        } else if (diff < 0) {
+                            el.diffBadge.classList.add('diff-negative');
+                            if (el.laneContainer) el.laneContainer.classList.add('losing-lane');
+                        }
+                    }
+                });
 
                 if (ui.elements.remainingCount) {
                     ui.elements.remainingCount.textContent = `${result.cardsRemaining} Cards`;
@@ -86,20 +144,56 @@ function endGame() {
 
     ui.updateMessage(msg);
 
-    // Sidebar Results
     const sidebar = document.getElementById('sidebar-results');
     if (sidebar) {
         sidebar.innerHTML = `
             <h3>BATTLE REPORT</h3>
-            <div class="result-line"><span>LEFT FLANK:</span> <span>${game.lanes.left.score1} vs ${game.lanes.left.score2}</span></div>
-            <div class="result-line"><span>FRONT:</span> <span>${game.lanes.center.score1} vs ${game.lanes.center.score2}</span></div>
-            <div class="result-line"><span>RIGHT FLANK:</span> <span>${game.lanes.right.score1} vs ${game.lanes.right.score2}</span></div>
-            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 1rem 0;">
-            <div class="result-line" style="font-weight: 800; font-size: 1.1rem; color: ${p1Wins > p2Wins ? '#4ade80' : (p2Wins > p1Wins ? '#f87171' : 'white')}">
-                RESULT: ${p1Wins > p2Wins ? 'VICTORY' : (p2Wins > p1Wins ? 'DEFEAT' : 'STALEMATE')}
+            <div class="result-line">
+                <span>LEFT</span>
+                <span class="${game.lanes.left.score1 > game.lanes.left.score2 ? 'res-win' : (game.lanes.left.score1 < game.lanes.left.score2 ? 'res-loss' : 'res-draw')}">
+                    ${game.lanes.left.score1}:${game.lanes.left.score2}
+                </span>
+            </div>
+            <div class="result-line">
+                <span>CENTRAL</span>
+                <span class="${game.lanes.center.score1 > game.lanes.center.score2 ? 'res-win' : (game.lanes.center.score1 < game.lanes.center.score2 ? 'res-loss' : 'res-draw')}">
+                    ${game.lanes.center.score1}:${game.lanes.center.score2}
+                </span>
+            </div>
+            <div class="result-line">
+                <span>RIGHT</span>
+                <span class="${game.lanes.right.score1 > game.lanes.right.score2 ? 'res-win' : (game.lanes.right.score1 < game.lanes.right.score2 ? 'res-loss' : 'res-draw')}">
+                    ${game.lanes.right.score1}:${game.lanes.right.score2}
+                </span>
+            </div>
+            <div class="divider"></div>
+            <div class="result-line" style="font-size: 1.1rem; color: ${p1Wins > p2Wins ? '#4ade80' : (p2Wins > p1Wins ? '#f87171' : 'white')}">
+                <span>RESULT</span>
+                <span>${p1Wins > p2Wins ? 'VICTORY' : (p2Wins > p1Wins ? 'DEFEAT' : 'STALEMATE')}</span>
             </div>
         `;
     }
+}
+
+// AI Toggle
+const aiToggle = document.getElementById('ai-toggle');
+const aiStatus = document.getElementById('ai-status');
+
+if (aiToggle) {
+    // Sync initial state
+    const initialSmart = aiToggle.checked;
+    game.setDifficulty(initialSmart ? 'smart' : 'random');
+    if (aiStatus) aiStatus.textContent = initialSmart ? 'SMART' : 'RANDOM';
+
+    aiToggle.addEventListener('change', (e) => {
+        const isSmart = e.target.checked;
+        game.setDifficulty(isSmart ? 'smart' : 'random');
+        if (aiStatus) {
+            aiStatus.textContent = isSmart ? 'SMART' : 'RANDOM';
+            // Debug log
+            console.log('AI Toggle Changed:', isSmart, aiStatus.textContent);
+        }
+    });
 }
 
 // Keyboard Shortcuts

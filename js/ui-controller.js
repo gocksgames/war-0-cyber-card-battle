@@ -75,28 +75,39 @@ export class UIController {
         }
     }
 
-    addToHistory(card1, card2, lane) {
+    resetCardVisuals() {
+        this.lanes.forEach(lane => {
+            const els = this.getLaneElements(lane);
+            // Don't clear content, maybe? Or do we clear content?
+            // "if a card has not been drawn... grey it out".
+            // If we clear content, we can't grey it out (it's empty).
+            // So we should KEEP the old card if it wasn't updated?
+            // "move the drawn card to be closer... if a card has not been drawn... grey it out."
+            // This implies the card STAYS there but is greyed out.
+            // So we don't clear innerHTML.
+            if (els.p1Slot) els.p1Slot.classList.remove('inactive');
+            if (els.p2Slot) els.p2Slot.classList.remove('inactive');
+        });
+    }
+
+    addToHistory(card, player, lane) {
+        // player: 'p1' or 'p2'
         const els = this.getLaneElements(lane);
 
-        // Player 1 (Bottom History)
-        const mini1 = document.createElement('div');
-        mini1.className = `mini-card ${card1.color}`;
-        mini1.innerHTML = `${card1.rank}<span class="mini-suit">${card1.suit}</span>`;
-        if (els.p1History) {
-            // els.p1History.insertBefore(mini1, els.p1History.firstChild); // Newest first?
-            // Actually user said "box... regardless... move below player... above cpu".
-            // We have unified container. P1 history is bottom grid. P2 is top grid.
-            // Let's prepend to show newest cards near the center?
-            // Actually append is standard for "history". Let's stick to append for now.
-            els.p1History.appendChild(mini1);
-        }
+        const mini = document.createElement('div');
+        mini.className = `mini-card ${card.color}`;
+        mini.innerHTML = `${card.rank}<span class="mini-suit">${card.suit}</span>`;
 
-        // Player 2 (Top History)
-        const mini2 = document.createElement('div');
-        mini2.className = `mini-card ${card2.color}`;
-        mini2.innerHTML = `${card2.rank}<span class="mini-suit">${card2.suit}</span>`;
-        if (els.p2History) {
-            els.p2History.appendChild(mini2);
+        const targetContainer = player === 'p1' ? els.p1History : els.p2History;
+
+        if (targetContainer) {
+            // "move that below the player card and above theCPU card"
+            // For P2 (Top), 'appendChild' adds to bottom (closest to center).
+            // For P1 (Bottom), 'prepend'? No, 'appendChild' adds to bottom (furthest from center).
+            // Request: "History box... move that below the player card and above the CPU card" -> CENTER area.
+            // But we split them.
+            // Let's just append for now.
+            targetContainer.appendChild(mini);
         }
     }
 

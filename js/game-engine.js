@@ -41,21 +41,30 @@ export class Deck {
 
 export class GameState {
     constructor() {
-        this.deck = new Deck(); // Helper only now
+        this.deck = []; // Helper only now
         this.player1Deck = [];
         this.player2Deck = [];
 
-        // Lane Data
+        // Lanes: Left, Center, Right
+        // We track scores per lane.
         this.lanes = {
-            left: { p1: [], p2: [], score1: 0, score2: 0, history: [] },
-            center: { p1: [], p2: [], score1: 0, score2: 0, history: [] },
-            right: { p1: [], p2: [], score1: 0, score2: 0, history: [] }
+            'left': { score1: 0, score2: 0, history: [] },
+            'center': { score1: 0, score2: 0, history: [] },
+            'right': { score1: 0, score2: 0, history: [] }
         };
 
         this.isGameOver = false;
+        this.difficulty = 'random'; // 'random' or 'smart'
+
+        this.initializeGame();
     }
 
-    startNewGame() {
+    setDifficulty(mode) {
+        this.difficulty = mode;
+        console.log("AI Difficulty set to:", this.difficulty);
+    }
+
+    initializeGame() {
         // Player 1 gets a full deck (2-10)
         const deck1 = new Deck();
         deck1.shuffle();
@@ -68,51 +77,53 @@ export class GameState {
 
         // Reset Lanes
         this.lanes = {
-            left: { score1: 0, score2: 0, history: [] },
-            center: { score1: 0, score2: 0, history: [] },
-            right: { score1: 0, score2: 0, history: [] }
+            'left': { score1: 0, score2: 0, history: [] },
+            'center': { score1: 0, score2: 0, history: [] },
+            'right': { score1: 0, score2: 0, history: [] }
         };
-
         this.isGameOver = false;
     }
 
-    playRound(laneName) {
+    playRound(playerLane) {
         if (this.player1Deck.length === 0 || this.player2Deck.length === 0) {
             this.isGameOver = true;
             return null;
         }
 
-        if (!['left', 'center', 'right'].includes(laneName)) {
-            console.error("Invalid lane:", laneName);
+        if (!['left', 'center', 'right'].includes(playerLane)) {
+            console.error("Invalid lane:", playerLane);
             return null;
         }
 
-        const card1 = this.player1Deck.shift();
-        const card2 = this.player2Deck.shift();
+        // AI Lane Selection
+        let cpuLane = 'center';
 
-        const lane = this.lanes[laneName];
+        if (this.difficulty === 'smart') {
+            cpuLane = this.getSmartCPUMove();
+        } else {
+            const lanes = ['left', 'center', 'right'];
+            cpuLane = lanes[Math.floor(Math.random() * lanes.length)];
+        }
 
-        // Score Update (Accumulator)
-        lane.score1 += card1.value;
-        lane.score2 += card2.value;
+        const card1 = this.player1Deck.shift(); // Player Card
+        const card2 = this.player2Deck.shift(); // CPU Card
 
-        // Determine Winner of this hand (for fun/animation, though score is what matters)
-        let winner = null;
-        if (card1.value > card2.value) winner = 'player1';
-        else if (card2.value > card1.value) winner = 'player2';
-        else winner = 'tie';
+        // Update Player's Chosen Lane
+        const pLaneData = this.lanes[playerLane];
+        pLaneData.score1 += card1.value;
+
+        // Update CPU's Chosen Lane
+        const cLaneData = this.lanes[cpuLane];
+        cLaneData.score2 += card2.value;
+
+        pLaneData.history.push({ player: 'p1', card: card1 });
+        cLaneData.history.push({ player: 'p2', card: card2 });
 
         const roundResult = {
-            card1,
-            card2,
-            winner,
-            lane: laneName,
-            score1: lane.score1,
-            score2: lane.score2,
+            playerMove: { lane: playerLane, card: card1, score: pLaneData.score1 },
+            cpuMove: { lane: cpuLane, card: card2, score: cLaneData.score2 },
             cardsRemaining: this.player1Deck.length
         };
-
-        lane.history.push(roundResult);
 
         if (this.player1Deck.length === 0) {
             this.isGameOver = true;
@@ -121,14 +132,50 @@ export class GameState {
         return roundResult;
     }
 
+    getSmartCPUMove() {
+        const lanes = ['left', 'center', 'right'];
+
+        // 1. Analyze Threats
+        // Priority: Attack a lane where playing here could flip the lead?
+        // Or defend a lane we are barely winning?
+        // Simple Heuristic: 
+        // - If losing a lane by < 15 points, attack it to try and catch up.
+        // - If winning a lane by > 20 points, ignore it (waste of resources), unless it's the only option.
+        // - Else random.
+
+        let candidates = [];
+
+        // Filter lanes where we are losing but close
+        const recoveryTargets = lanes.filter(l => {
+            const diff = this.lanes[l].score2 - this.lanes[l].score1; // CPU - Player
+            return diff < 0 && diff > -20; // Losing by less than 20
+        });
+
+        if (recoveryTargets.length > 0) {
+            return recoveryTargets[Math.floor(Math.random() * recoveryTargets.length)];
+        }
+
+        // Filter lanes where we are barely winning (defend lead)
+        const defendTargets = lanes.filter(l => {
+            const diff = this.lanes[l].score2 - this.lanes[l].score1;
+            return diff > 0 && diff < 10; // Leading by less than 10
+        });
+
+        if (defendTargets.length > 0) {
+            return defendTargets[Math.floor(Math.random() * defendTargets.length)];
+        }
+
+        // If mostly tied or way ahead/behind, just random.
+        return lanes[Math.floor(Math.random() * lanes.length)];
+    }
+
     simulateRestOfGame() {
         const results = [];
         const lanes = ['left', 'center', 'right'];
 
         while (!this.isGameOver) {
-            // Pick a random lane for simulation
-            const randomLane = lanes[Math.floor(Math.random() * lanes.length)];
-            results.push(this.playRound(randomLane));
+            const randomPLane = lanes[Math.floor(Math.random() * lanes.length)];
+            results.push(this.playRound(randomPLane));
         }
         return results;
     }

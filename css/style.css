@@ -1,26 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap');
+
 :root {
-    /* Colors - Mini Metro Inspired (Dark Mode) */
-    --bg-color: #1e1e24;
-    /* Deep slate/black */
-    --panel-bg: #25252d;
-    --border-color: #444450;
+    /* Fonts */
+    --font-header: 'Orbitron', sans-serif;
+    --font-mono: 'Rajdhani', monospace;
+    --font-body: 'Rajdhani', sans-serif;
 
-    /* Accents - Pastels/Vibrant */
-    --accent-primary: #75c9c8;
-    /* Teal/Cyan */
-    --accent-secondary: #ff9b85;
-    /* Soft Red/Orange */
-    --accent-tertiary: #f9f871;
-    /* Yellow */
-    --text-primary: #ffffff;
-    --text-secondary: #a0a0b0;
+    /* Colors */
+    --bg-color: #0f172a;
+    --panel-bg: #1e293b;
+    --sidebar-bg: #111827;
+    --accent-primary: #38bdf8;
+    /* Sky Blue */
+    --accent-secondary: #f472b6;
+    /* Pink */
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --border-color: #334155;
+
+    /* Spacing */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 16px;
+
     --danger: #ef476f;
-
-    /* Layout */
-    --panel-width: 250px;
-    --radius-lg: 24px;
-    --radius-md: 16px;
-    --radius-sm: 8px;
 }
 
 * {
@@ -30,155 +33,169 @@
 }
 
 body {
-    font-family: 'Outfit', 'Inter', sans-serif;
+    font-family: var(--font-body);
     background-color: var(--bg-color);
     color: var(--text-primary);
     height: 100vh;
-    width: 100vw;
     overflow: hidden;
-    display: flex;
 }
 
-.game-stage {
-    display: grid;
-    grid-template-columns: var(--panel-width) 1fr;
-    width: 100%;
+.app-container {
+    display: flex;
     height: 100%;
 }
 
-/* PANELS */
-.panel {
-    background: var(--panel-bg);
-    border-right: 1px solid var(--border-color);
-    padding: 2rem;
+/* Sidebar */
+.sidebar {
+    width: 280px;
+    background: var(--sidebar-bg);
+    padding: 1.5rem;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    border-right: 1px solid var(--border-color);
+    z-index: 10;
 }
 
-.panel-header {
-    border-bottom: 2px solid var(--border-color);
-    padding-bottom: 1.5rem;
+.sidebar-header {
+    background: #000;
+    padding: 1.5rem;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+}
+
+.sidebar-header h1 {
+    font-family: var(--font-header);
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--accent-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
     margin-bottom: 0.5rem;
+    text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
 }
 
-.panel-header h2 {
-    font-size: 2rem;
-    /* War.0 large title */
-    font-weight: 800;
-    letter-spacing: -0.05em;
-    color: var(--text-primary);
-    line-height: 1;
-}
-
-.deck-count {
-    font-size: 0.875rem;
+.deck-status {
+    font-size: 0.9rem;
     color: var(--text-secondary);
-    font-weight: 600;
-    margin-top: 0.5rem;
+    font-family: var(--font-mono);
+    font-weight: 700;
 }
 
-/* Controls Area */
-.controls-area {
+/* Controls */
+.primary-controls {
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
-.secondary-controls {
-    margin-top: auto;
+/* AI Toggle Overlay */
+.control-group {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 0.75rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Deck Area (Left) */
-.deck-area {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    /* Align to top of area below button */
-    padding-top: 1rem;
-}
-
-.deck-stack {
-    width: 120px;
-    /* Smaller deck rep */
-    height: 168px;
-    background: #2b2b36;
-    border: 2px solid var(--border-color);
-    border-radius: var(--radius-md);
-    position: relative;
-    box-shadow:
-        0 4px 0 #1a1a20,
-        0 0 20px rgba(0, 0, 0, 0.2);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.deck-stack::before {
-    content: '';
-    position: absolute;
-    top: -4px;
-    left: -4px;
-    /* Offset stack effect */
-    right: -4px;
-    bottom: -4px;
-    border: 2px solid var(--border-color);
-    border-radius: var(--radius-md);
-    z-index: -1;
-    background: #2b2b36;
-}
-
-.deck-label {
-    font-size: 1rem;
-    font-weight: 800;
-    color: var(--text-secondary);
-    transform: rotate(-90deg);
-}
-
-/* Buttons - Modern/Flat/Pill */
-.btn {
-    border: none;
-    padding: 1rem;
-    border-radius: var(--radius-lg);
-    cursor: pointer;
+.toggle-label {
+    font-size: 0.8rem;
     font-weight: 700;
-    font-size: 0.875rem;
-    transition: transform 0.1s, filter 0.2s;
-    font-family: 'Outfit', sans-serif;
+    color: var(--text-secondary);
     letter-spacing: 0.05em;
+}
+
+.toggle-switch {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+}
+
+.toggle-switch input {
+    display: none;
+}
+
+.slider {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background-color: var(--border-color);
+    border-radius: 24px;
+    transition: .4s;
+    cursor: pointer;
+    display: block;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    border-radius: 50%;
+    transition: .4s;
+}
+
+input:checked+.slider {
+    background-color: var(--accent-secondary);
+    /* Pink for Smart AI */
+}
+
+input:checked+.slider:before {
+    transform: translateX(20px);
+}
+
+.status-text {
+    font-size: 0.9rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
+}
+
+.divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 0.5rem 0;
+}
+
+.btn {
+    padding: 0.75rem;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-header);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
     text-transform: uppercase;
+    font-size: 0.9rem;
 }
 
-.btn:active {
-    transform: scale(0.98);
+.secondary {
+    background: var(--panel-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
 }
 
-.btn.primary-action {
-    background: var(--accent-primary);
-    color: #1a1a20;
-    font-size: 1rem;
-    box-shadow: 0 4px 12px rgba(117, 201, 200, 0.3);
+.secondary:hover {
+    border-color: var(--text-secondary);
 }
 
-.btn.primary-action:hover {
-    filter: brightness(1.1);
-}
-
-.btn.secondary {
-    background: transparent;
-    border: 2px solid var(--border-color);
-    color: var(--text-secondary);
-}
-
-.btn.tertiary {
+.tertiary {
     background: transparent;
     color: var(--text-secondary);
-    opacity: 0.6;
+    border: 1px solid transparent;
 }
+
+.tertiary:hover {
+    color: var(--text-primary);
+}
+
 
 /* Battle Arena (Center) */
 .battle-arena {
@@ -229,23 +246,29 @@ body {
 .lane-header {
     width: 100%;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
+    /* CENTER ALIGN TITLE */
     align-items: center;
     padding: 0 0.5rem;
     margin-bottom: 0.25rem;
+    position: relative;
 }
 
 .lane-title {
-    font-size: 0.9rem;
+    font-family: var(--font-header);
+    font-size: 1rem;
     font-weight: 800;
     color: var(--text-secondary);
-    letter-spacing: 0.05em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
 }
 
 .lane-shortcut {
+    position: absolute;
+    /* Kept out of the way */
+    right: 0;
     font-size: 0.7rem;
-    font-family: monospace;
+    font-family: var(--font-mono);
     background: rgba(255, 255, 255, 0.1);
     padding: 2px 6px;
     border-radius: 4px;
@@ -260,68 +283,77 @@ body {
     width: 100%;
     gap: 0.5rem;
     position: relative;
+    justify-content: center;
+    /* Center everything if space allows */
 }
 
 .unit-zone {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
+    /* Push items towards boundary? */
     position: relative;
     padding: 0.5rem;
+    flex: 1;
+    /* Allow zones to grow */
 }
 
 .p2-unit {
-    /* CPU Top */
-    flex: 0 0 auto;
-    /* Height determined by content */
-    border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+    /* CPU Top - Flex direction column: History Top -> Score -> Card Bottom */
+    justify-content: flex-start;
+    /* Stack from top down */
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+    /* Softer separator */
 }
 
 .p1-unit {
-    /* Player Bottom */
-    flex: 0 0 auto;
-    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+    /* Player Bottom - Flex direction column: Card Top -> Score -> History Bottom */
+    justify-content: flex-start;
+    /* Stack from top down physically? No, DOM order handles it. */
+    /* DOM: Card -> Score -> History */
+    /* So standard flex alignment works */
+    border-top: 1px dashed rgba(255, 255, 255, 0.05);
 }
 
-/* History Trench (Middle) */
-.history-trench {
-    flex: 1;
-    /* Takes all available space in middle */
+/* Midline Trench (Just for Diff Badge now) */
+.midline-trench {
     display: flex;
-    flex-direction: column;
-    /* Stack P2, Diff, P1 grids vertically? Or separate? */
-    /* Request said "History Box". Let's stack them visually */
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: var(--radius-sm);
-    padding: 0.5rem;
-    gap: 0.5rem;
-    overflow-y: auto;
-    /* Scroll if history gets crazy long */
-    min-height: 200px;
+    padding: 0.25rem;
+    height: 40px;
+    /* Fixed height for consistency */
 }
 
-/* History Grids inside Trench */
+/* History Grids styled to be peripheral */
 .history-grid {
     width: 100%;
-    /* Keep 6x6 grid structure, maybe fluid width? */
     display: grid;
     grid-template-columns: repeat(6, 1fr);
     grid-auto-rows: max-content;
     gap: 2px;
     justify-items: center;
+    opacity: 0.8;
 }
 
+/* Make history scrollable if huge? Limit height? */
 .p2-history {
-    opacity: 0.7;
-    /* Dim old enemy moves */
+    /* CPU History at TOP */
+    margin-bottom: auto;
+    /* Push everything else down */
+}
+
+.p1-history {
+    /* Player History at BOTTOM */
+    margin-top: auto;
+    /* Push everything else up */
 }
 
 .diff-badge {
-    font-size: 1rem;
-    font-weight: 900;
+    font-size: 1.1rem;
+    font-family: var(--font-mono);
+    font-weight: 700;
     background: #1a1a1a;
     padding: 0.25rem 1rem;
     border-radius: 1rem;
@@ -331,7 +363,6 @@ body {
 
 .card-slot {
     width: 80px;
-    /* Even smaller to fit */
     height: 112px;
     border: 2px dashed var(--border-color);
     border-radius: var(--radius-sm);
@@ -340,11 +371,19 @@ body {
     align-items: center;
     background: rgba(0, 0, 0, 0.2);
     position: relative;
+    transition: all 0.2s;
+}
+
+.card-slot.inactive {
+    opacity: 0.3;
+    filter: grayscale(1);
+    border-style: dotted;
 }
 
 .score-tag {
-    font-size: 1.25rem;
-    font-weight: 800;
+    font-family: var(--font-header);
+    font-size: 1.5rem;
+    font-weight: 700;
     margin: 0.25rem 0;
 }
 
@@ -361,7 +400,8 @@ body {
     width: 100%;
     padding: 1rem;
     font-size: 1rem;
-    font-weight: 800;
+    font-family: var(--font-header);
+    font-weight: 700;
     letter-spacing: 0.05em;
     background: var(--accent-primary);
     color: #1a1a1a;
@@ -384,10 +424,12 @@ body {
 
 /* Sidebar Results */
 .sidebar-results {
-    margin-top: 2rem;
+    margin-top: auto;
+    /* Sidebar results bottom? Or just below controls */
     padding: 1rem;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.2);
     border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
     font-size: 0.9rem;
     color: var(--text-secondary);
 }
@@ -395,68 +437,26 @@ body {
 .result-line {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 0.5rem;
-    font-family: monospace;
+    margin-bottom: 0.25rem;
+    font-family: var(--font-mono);
+    font-weight: 600;
 }
 
-/* Player Zones */
-.player-zone {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.25rem;
-    width: 100%;
-    position: relative;
-    padding: 0.75rem;
-    border-radius: var(--radius-md);
-    flex: 1;
-    /* Stretch vertically if needed */
+.result-line span:last-child {
+    font-weight: 700;
 }
 
-.p2-zone {
-    /* CPU - Subtle Red Tint Background */
-    background: rgba(239, 71, 111, 0.05);
-    border: 1px solid rgba(239, 71, 111, 0.1);
-    /* No scale */
+/* Colors for Result Report */
+.res-win {
+    color: #4ade80;
 }
 
-.p1-zone {
-    /* Player - Subtle Teal Tint Background */
-    background: rgba(117, 201, 200, 0.05);
-    border: 1px solid rgba(117, 201, 200, 0.1);
+.res-loss {
+    color: #f87171;
 }
 
-.player-label {
-    font-size: 0.75rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--text-secondary);
-    margin-bottom: 0.5rem;
-    margin-left: 0.5rem;
-}
-
-.zone-content {
-    display: flex;
-    flex-direction: column;
-    /* Vertical stack: History/Score vs Card */
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-}
-
-.card-slot {
-    width: 100px;
-    /* Smaller */
-    height: 140px;
-    border: 2px dashed var(--border-color);
-    border-radius: var(--radius-sm);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    flex-shrink: 0;
-    background: rgba(0, 0, 0, 0.2);
+.res-draw {
+    color: #fbbf24;
 }
 
 /* Cards */
@@ -514,73 +514,6 @@ body {
     }
 }
 
-/* History Container */
-.history-container {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    justify-content: center;
-}
-
-.score-display {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.25rem;
-    background: transparent;
-    border: none;
-    width: 100%;
-    justify-content: center;
-}
-
-/* P1 Score - Above */
-.p1-history-container {
-    flex-direction: column-reverse;
-    /* For Player: Card -> History -> Score below */
-    margin-top: 0.5rem;
-}
-
-/* P2 Score - Below */
-.p2-history-container {
-    flex-direction: column;
-    /* For CPU: Score -> History -> Card below */
-    margin-bottom: 0.5rem;
-}
-
-.score-display .label {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-}
-
-.score-display .score-value {
-    font-size: 1.25rem;
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-}
-
-#p1-score {
-    color: var(--accent-primary);
-}
-
-#p2-score {
-    color: var(--accent-secondary);
-}
-
-/* History Grid - 6x6 Setup Small */
-.history-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    grid-auto-rows: max-content;
-    gap: 2px;
-    width: 134px;
-    /* 6 * 20px + 5 * 2px + padding */
-    height: auto;
-    background: transparent;
-    border: none;
-    padding: 0;
-}
-
 .mini-card {
     width: 20px;
     height: 28px;
@@ -605,23 +538,4 @@ body {
 
 .mini-suit {
     font-size: 0.4rem;
-}
-
-/* Lane Button */
-.lane-btn {
-    margin-top: 0.5rem;
-    width: 100%;
-    padding: 0.75rem;
-    font-size: 0.8rem;
-}
-
-/* Message Area */
-.message-area {
-    position: absolute;
-    bottom: 1rem;
-    font-weight: 800;
-    color: var(--accent-secondary);
-    text-align: center;
-    width: 100%;
-    pointer-events: none;
 }

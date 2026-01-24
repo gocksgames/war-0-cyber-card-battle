@@ -4,33 +4,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>War.0</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>War.0 - Cyber Card Battle</title>
+    <!-- Modern Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
-    <div class="game-stage">
-        <!-- Left Panel: Controls & Deck -->
-        <aside class="panel left-panel">
-            <div class="panel-header">
-                <h2>War.0</h2>
-                <div id="remaining-count" class="deck-count">36 Cards</div>
+    <div class="app-container">
+        <!-- Sidebar Controls -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>WAR.0</h1>
+                <div class="deck-status">0 Cards</div>
             </div>
 
-            <div class="controls-area">
-                <!-- Draw Button Moved to Center -->
-            </div>
+            <div class="primary-controls">
+                <!-- AI Toggle -->
+                <div class="control-group ai-toggle-group">
+                    <label class="toggle-label">CPU INTEL:</label>
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="ai-toggle">
+                        <label for="ai-toggle" class="slider"></label>
+                        <span class="status-text" id="ai-status">RANDOM</span>
+                    </div>
+                </div>
 
-            <div class="deck-area">
-                <!-- Deck Removed -->
-            </div>
+                <div class="divider"></div>
 
-            <div class="secondary-controls">
-                <button id="sim-btn" class="btn secondary">Simulate</button>
-                <button id="reset-btn" class="btn tertiary">Reset</button>
+                <button id="sim-btn" class="btn secondary">SIMULATE</button>
+                <button id="reset-btn" class="btn tertiary">RESET</button>
             </div>
 
             <!-- Sidebar Results -->
@@ -49,57 +56,57 @@
                 </div>
 
                 <div class="battle-zone">
-                    <!-- CPU (Top) -->
+                    <!-- CPU Zone (History Top -> Score -> Card) -->
                     <div class="unit-zone p2-unit">
-                        <div id="p2-card-slot-left" class="card-slot"></div>
-                        <div class="score-tag p2-score" id="p2-score-left">0</div>
-                    </div>
-
-                    <!-- History (Middle / No Man's Land) -->
-                    <div class="history-trench">
                         <div id="p2-history-left" class="history-grid p2-history"></div>
-                        <div class="diff-badge" id="diff-left">0</div>
-                        <div id="p1-history-left" class="history-grid p1-history"></div>
+                        <div class="score-tag p2-score" id="p2-score-left">0</div>
+                        <div id="p2-card-slot-left" class="card-slot"></div>
                     </div>
 
-                    <!-- Player (Bottom) -->
+                    <!-- Midline (Diff Badge) -->
+                    <div class="midline-trench">
+                        <div class="diff-badge" id="diff-left">0</div>
+                    </div>
+
+                    <!-- Player Zone (Card -> Score -> History Bottom) -->
                     <div class="unit-zone p1-unit">
-                        <div class="score-tag p1-score" id="p1-score-left">0</div>
                         <div id="p1-card-slot-left" class="card-slot"></div>
+                        <div class="score-tag p1-score" id="p1-score-left">0</div>
+                        <div id="p1-history-left" class="history-grid p1-history"></div>
                     </div>
                 </div>
 
-                <!-- Action (Bottom Outside) -->
+                <!-- Action (Bottom) -->
                 <button id="draw-btn-left" class="btn action-btn">
                     DEPLOY (A)
                 </button>
             </div>
 
-            <!-- Front (Center) -->
+            <!-- Central (Center) -->
             <div class="lane" id="lane-center">
                 <div class="lane-header">
-                    <div class="lane-title">FRONT</div>
+                    <div class="lane-title">CENTRAL</div>
                     <div class="lane-shortcut">S</div>
                 </div>
 
                 <div class="battle-zone">
                     <!-- CPU -->
                     <div class="unit-zone p2-unit">
-                        <div id="p2-card-slot-center" class="card-slot"></div>
+                        <div id="p2-history-center" class="history-grid p2-history"></div>
                         <div class="score-tag p2-score" id="p2-score-center">0</div>
+                        <div id="p2-card-slot-center" class="card-slot"></div>
                     </div>
 
-                    <!-- History -->
-                    <div class="history-trench">
-                        <div id="p2-history-center" class="history-grid p2-history"></div>
+                    <!-- Midline -->
+                    <div class="midline-trench">
                         <div class="diff-badge" id="diff-center">0</div>
-                        <div id="p1-history-center" class="history-grid p1-history"></div>
                     </div>
 
                     <!-- Player -->
                     <div class="unit-zone p1-unit">
-                        <div class="score-tag p1-score" id="p1-score-center">0</div>
                         <div id="p1-card-slot-center" class="card-slot"></div>
+                        <div class="score-tag p1-score" id="p1-score-center">0</div>
+                        <div id="p1-history-center" class="history-grid p1-history"></div>
                     </div>
                 </div>
 
@@ -118,21 +125,21 @@
                 <div class="battle-zone">
                     <!-- CPU -->
                     <div class="unit-zone p2-unit">
-                        <div id="p2-card-slot-right" class="card-slot"></div>
+                        <div id="p2-history-right" class="history-grid p2-history"></div>
                         <div class="score-tag p2-score" id="p2-score-right">0</div>
+                        <div id="p2-card-slot-right" class="card-slot"></div>
                     </div>
 
-                    <!-- History -->
-                    <div class="history-trench">
-                        <div id="p2-history-right" class="history-grid p2-history"></div>
+                    <!-- Midline -->
+                    <div class="midline-trench">
                         <div class="diff-badge" id="diff-right">0</div>
-                        <div id="p1-history-right" class="history-grid p1-history"></div>
                     </div>
 
                     <!-- Player -->
                     <div class="unit-zone p1-unit">
-                        <div class="score-tag p1-score" id="p1-score-right">0</div>
                         <div id="p1-card-slot-right" class="card-slot"></div>
+                        <div class="score-tag p1-score" id="p1-score-right">0</div>
+                        <div id="p1-history-right" class="history-grid p1-history"></div>
                     </div>
                 </div>
 
@@ -144,22 +151,7 @@
             <div id="message-area" class="message-area"></div>
         </main>
 
-        <!-- Right Panel: Simulation Stats (Hidden mostly) -->
-        <aside class="panel right-panel" style="display: none;">
-            <!-- Hidden for now as requested layout changes logic -->
-            <div id="sim-stats" class="simulation-stats hidden">
-                <h3>Results</h3>
-                <div class="stat-row">
-                    <span>P1 Sum:</span> <span id="stat-p1-wins">0</span>
-                </div>
-                <div class="stat-row">
-                    <span>P2 Sum:</span> <span id="stat-p2-wins">0</span>
-                </div>
-                <div class="stat-total">
-                    <span>Result:</span> <span id="stat-final-score">0 - 0</span>
-                </div>
-            </div>
-        </aside>
+
     </div>
 
     <!-- Load main script as module -->
