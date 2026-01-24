@@ -23,7 +23,6 @@ export class Deck {
         this.cards = [];
         SUITS.forEach(suit => {
             RANKS.forEach((rank, index) => {
-                // Values: 2=2... 10=10. Index 0 is '2'. So value = index + 2.
                 this.cards.push(new Card(suit, rank, index + 2));
             });
         });
@@ -35,18 +34,14 @@ export class Deck {
             [this.cards[i], this.cards[j]] = [this.cards[j], this.cards[i]];
         }
     }
-
-    // deal method removed as we now use full decks per player
 }
 
 export class GameState {
     constructor() {
-        this.deck = []; // Helper only now
+        this.deck = [];
         this.player1Deck = [];
         this.player2Deck = [];
 
-        // Lanes: Left, Center, Right
-        // We track scores per lane.
         this.lanes = {
             'left': { score1: 0, score2: 0, history: [] },
             'center': { score1: 0, score2: 0, history: [] },
@@ -54,28 +49,25 @@ export class GameState {
         };
 
         this.isGameOver = false;
-        this.difficulty = 'random'; // 'random' or 'smart'
+        this.difficulty = 2; // 0=Random, 1=Easy, 2=Hard
 
         this.initializeGame();
     }
 
-    setDifficulty(mode) {
-        this.difficulty = mode;
+    setDifficulty(level) {
+        this.difficulty = level;
         console.log("AI Difficulty set to:", this.difficulty);
     }
 
     initializeGame() {
-        // Player 1 gets a full deck (2-10)
         const deck1 = new Deck();
         deck1.shuffle();
         this.player1Deck = deck1.cards;
 
-        // Player 2 gets a full deck (2-10)
         const deck2 = new Deck();
         deck2.shuffle();
         this.player2Deck = deck2.cards;
 
-        // Reset Lanes
         this.lanes = {
             'left': { score1: 0, score2: 0, history: [] },
             'center': { score1: 0, score2: 0, history: [] },
@@ -95,29 +87,23 @@ export class GameState {
             return null;
         }
 
-        // AI Lane Selection based on difficulty
         let cpuLane = 'center';
 
         if (this.difficulty === 2) {
-            // Hard: Greedy strategy
             cpuLane = this.getSmartCPUMove();
         } else if (this.difficulty === 1) {
-            // Easy: Simple heuristic
             cpuLane = this.getEasyCPUMove();
         } else {
-            // Random
             const lanes = ['left', 'center', 'right'];
             cpuLane = lanes[Math.floor(Math.random() * lanes.length)];
         }
 
-        const card1 = this.player1Deck.shift(); // Player Card
-        const card2 = this.player2Deck.shift(); // CPU Card
+        const card1 = this.player1Deck.shift();
+        const card2 = this.player2Deck.shift();
 
-        // Update Player's Chosen Lane
         const pLaneData = this.lanes[playerLane];
         pLaneData.score1 += card1.value;
 
-        // Update CPU's Chosen Lane
         const cLaneData = this.lanes[cpuLane];
         cLaneData.score2 += card2.value;
 
@@ -138,39 +124,79 @@ export class GameState {
     }
 
     getSmartCPUMove() {
-        // Hard difficulty: Greedy strategy
+        // Hard AI: Strategic lane selection focusing on winning lanes
         const lanes = ['left', 'center', 'right'];
 
-        // Find weakest lane (where we're behind the most)
-        let weakestLane = lanes[0];
-        let weakestDiff = Infinity;
-
-        lanes.forEach(lane => {
+        // Analyze each lane
+        const analysis = lanes.map(lane => {
             const diff = this.lanes[lane].score2 - this.lanes[lane].score1;
-            if (diff < weakestDiff) {
-                weakestDiff = diff;
-                weakestLane = lane;
+            const p2Cards = this.lanes[lane].history.filter(h => h.player === 'p2').length;
+            const cardsLeft = 2 - p2Cards;
+
+            let priority = 0;
+
+            // Can't play here
+            if (cardsLeft === 0) {
+                priority = -1000;
             }
+            // Losing by a lot - try to prevent total loss
+            else if (diff < -20) {
+                priority = 80;
+            }
+            // Losing slightly - HIGH priority to catch up
+            else if (diff < -5) {
+                priority = 100;
+            }
+            // Close game or tied - try to win
+            else if (diff <= 5) {
+                priority = 95;
+            }
+            // Winning - reinforce
+            else if (diff <= 15) {
+                priority = 70;
+            }
+            // Winning big - lower priority
+            else {
+                priority = 30;
+            }
+
+            return { lane, priority, diff };
         });
 
-        return weakestLane;
+        // Filter available lanes and sort by priority
+        const available = analysis.filter(a => a.priority > -1000);
+
+        if (available.length === 0) return 'center';
+
+        available.sort((a, b) => b.priority - a.priority);
+
+        return available[0].lane;
     }
 
     getEasyCPUMove() {
-        // Easy difficulty: Simple heuristic - avoid obvious losing lanes
+        // Easy AI: Avoid heavily losing lanes
         const lanes = ['left', 'center', 'right'];
 
-        // Filter lanes where we aren't massively losing
         const okLanes = lanes.filter(l => {
             const diff = this.lanes[l].score2 - this.lanes[l].score1;
-            return diff > -30; // Not losing by more than 30
+            const p2Cards = this.lanes[l].history.filter(h => h.player === 'p2').length;
+            return diff > -30 && p2Cards < 2;
         });
 
         if (okLanes.length > 0) {
             return okLanes[Math.floor(Math.random() * okLanes.length)];
         }
 
-        // All lanes are bad, pick random
+        // Fallback to lanes with space
+        const withSpace = lanes.filter(l => {
+            const p2Cards = this.lanes[l].history.filter(h => h.player === 'p2').length;
+            return p2Cards < 2;
+        });
+
+        if (withSpace.length > 0) {
+            return withSpace[Math.floor(Math.random() * withSpace.length)];
+        }
+
         return lanes[Math.floor(Math.random() * lanes.length)];
     }
 
