@@ -69,22 +69,34 @@ export class UIController {
         // Update Difference Badge & Dynamic Borders
         if (els.diffBadge) {
             const diff = s1 - s2;
+            const absDiff = Math.abs(diff);
             els.diffBadge.textContent = diff === 0 ? '0' : (diff > 0 ? `+${diff}` : diff);
 
             // Remove old classes from Badge
-            els.diffBadge.classList.remove('diff-positive', 'diff-negative');
+            els.diffBadge.classList.remove('diff-positive', 'diff-negative', 'diff-low', 'diff-medium', 'diff-high');
             // Remove old classes from Lane
             if (els.laneContainer) {
                 els.laneContainer.classList.remove('winning-lane', 'losing-lane');
             }
 
-            // Add new classes logic
+            // Add new classes logic with intensity
             if (diff > 0) {
                 els.diffBadge.classList.add('diff-positive');
                 if (els.laneContainer) els.laneContainer.classList.add('winning-lane');
             } else if (diff < 0) {
                 els.diffBadge.classList.add('diff-negative');
                 if (els.laneContainer) els.laneContainer.classList.add('losing-lane');
+            }
+
+            // Add intensity class based on absolute difference
+            if (absDiff > 0) {
+                if (absDiff <= 20) {
+                    els.diffBadge.classList.add('diff-low');
+                } else if (absDiff <= 50) {
+                    els.diffBadge.classList.add('diff-medium');
+                } else {
+                    els.diffBadge.classList.add('diff-high');
+                }
             }
         }
     }
@@ -126,6 +138,47 @@ export class UIController {
         }
     }
 
+    showGameResultBanner(resultType, resultText) {
+        const banner = document.getElementById('game-result-banner');
+        if (!banner) return;
+
+        banner.style.display = 'block';
+        banner.className = `game-result-banner ${resultType}`;
+        banner.innerHTML = `<div class="banner-text">${resultText}</div>`;
+    }
+
+    hideGameResultBanner() {
+        const banner = document.getElementById('game-result-banner');
+        if (banner) banner.style.display = 'none';
+    }
+
+    updateReconStats(p1Total, p2Total, p1Count, p2Count) {
+        const threatDelta = document.getElementById('threat-delta');
+        const p1StrikeRating = document.getElementById('p1-strike-rating');
+        const p2StrikeRating = document.getElementById('p2-strike-rating');
+
+        // Threat Delta (CPU - Player difference)
+        if (threatDelta) {
+            const delta = p2Total - p1Total;
+            threatDelta.textContent = delta === 0 ? '0' : (delta > 0 ? `+${delta}` : delta);
+
+            threatDelta.classList.remove('positive', 'negative');
+            if (delta > 0) threatDelta.classList.add('positive');
+            else if (delta < 0) threatDelta.classList.add('negative');
+        }
+
+        // Strike Rating (average card value) for each player
+        if (p1StrikeRating) {
+            const avg = p1Count > 0 ? (p1Total / p1Count).toFixed(1) : '0.0';
+            p1StrikeRating.textContent = avg;
+        }
+
+        if (p2StrikeRating) {
+            const avg = p2Count > 0 ? (p2Total / p2Count).toFixed(1) : '0.0';
+            p2StrikeRating.textContent = avg;
+        }
+    }
+
     showSidebarResults(game) {
         const sidebar = document.getElementById('sidebar-results');
         if (!sidebar) return;
@@ -139,10 +192,16 @@ export class UIController {
             else if (game.lanes[lane].score2 > game.lanes[lane].score1) p2Wins++;
         });
 
-        // Determine result text/color
-        const resultText = p1Wins > p2Wins ? 'VICTORY' : (p2Wins > p1Wins ? 'DEFEAT' : 'STALEMATE');
-        const resultColor = p1Wins > p2Wins ? '#4ade80' : (p2Wins > p1Wins ? '#f87171' : 'white');
+        // Show banner in left drawer
+        if (p1Wins > p2Wins) {
+            this.showGameResultBanner('win', 'YOU WIN');
+        } else if (p2Wins > p1Wins) {
+            this.showGameResultBanner('loss', 'CPU WINS');
+        } else {
+            this.showGameResultBanner('draw', 'DRAW');
+        }
 
+        // Show detailed report in sidebar
         sidebar.innerHTML = `
             <h3>BATTLE REPORT</h3>
             ${['left', 'center', 'right'].map(lane => `
@@ -153,11 +212,6 @@ export class UIController {
                     </span>
                 </div>
             `).join('')}
-            <div class="divider"></div>
-            <div class="result-line" style="font-size: 1.1rem; color: ${resultColor}">
-                <span>RESULT</span>
-                <span>${resultText}</span>
-            </div>
         `;
     }
 
@@ -196,6 +250,8 @@ export class UIController {
         this.setButtonsEnabled(true);
         const sidebar = document.getElementById('sidebar-results');
         if (sidebar) sidebar.innerHTML = '';
+
+        this.hideGameResultBanner();
 
         if (this.elements.remainingCount) this.elements.remainingCount.textContent = '36 Cards';
         if (this.elements.messageArea) this.elements.messageArea.textContent = '';
@@ -257,6 +313,9 @@ export class UIController {
         const p2Total = this.renderCardMatrix(p2Grid, game.player2Deck, true);
         if (p2Count) p2Count.textContent = game.player2Deck.length;
         if (p2Sum) p2Sum.textContent = p2Total;
+
+        // Update recon stats in right drawer (includes strike ratings)
+        this.updateReconStats(p1Total, p2Total, game.player1Deck.length, game.player2Deck.length);
     }
 
     updateLaneHistory(lane, historyData) {

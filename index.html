@@ -23,6 +23,11 @@
                 <div class="deck-status" id="remaining-count">0 Cards</div>
             </div>
 
+            <!-- Game Result Banner -->
+            <div id="game-result-banner" class="game-result-banner" style="display: none;">
+                <!-- Injected via JS -->
+            </div>
+
             <div class="primary-controls">
                 <!-- AI Toggle -->
                 <div class="control-group ai-toggle-group">
@@ -57,11 +62,11 @@
                 </div>
 
                 <div class="battle-zone">
-                    <!-- CPU Zone (History Top -> Score -> Card) -->
+                    <!-- CPU Zone (History Top -> Card -> Score) -->
                     <div class="unit-zone p2-unit">
                         <div id="p2-history-left" class="history-grid p2-history"></div>
-                        <div class="score-tag p2-score" id="p2-score-left">0</div>
                         <div id="p2-card-slot-left" class="card-slot"></div>
+                        <div class="score-tag p2-score" id="p2-score-left">0</div>
                     </div>
 
                     <!-- Midline (Diff Badge) -->
@@ -95,8 +100,8 @@
                     <!-- CPU -->
                     <div class="unit-zone p2-unit">
                         <div id="p2-history-center" class="history-grid p2-history"></div>
-                        <div class="score-tag p2-score" id="p2-score-center">0</div>
                         <div id="p2-card-slot-center" class="card-slot"></div>
+                        <div class="score-tag p2-score" id="p2-score-center">0</div>
                     </div>
 
                     <!-- Midline -->
@@ -128,8 +133,8 @@
                     <!-- CPU -->
                     <div class="unit-zone p2-unit">
                         <div id="p2-history-right" class="history-grid p2-history"></div>
-                        <div class="score-tag p2-score" id="p2-score-right">0</div>
                         <div id="p2-card-slot-right" class="card-slot"></div>
+                        <div class="score-tag p2-score" id="p2-score-right">0</div>
                     </div>
 
                     <!-- Midline -->
@@ -156,23 +161,68 @@
         <!-- Right Panel: Reinforcements -->
         <aside class="reinforcements sidebar">
             <div class="sidebar-header reinf-header">
-                <h2>INTEL</h2>
+                <h2>RECON</h2>
             </div>
 
-            <!-- CPU Deck Grid -->
-            <div class="reinf-section">
-                <h3>CPU FORCE (<span id="p2-deck-count">0</span>)</h3>
-                <div class="deck-grid" id="p2-deck-grid"></div>
-                <div class="deck-sum">THREAT: <span id="p2-deck-sum">0</span></div>
-            </div>
+            <!-- Recon content - mirrors battle-zone -->
+            <div class="recon-content">
+                <!-- CPU section - mirrors p2-unit -->
+                <div class="recon-cpu-section">
+                    <!-- CPU Deck Grid -->
+                    <div class="reinf-section">
+                        <h3>CPU DECK (<span id="p2-deck-count">0</span>)</h3>
+                        <div class="deck-grid" id="p2-deck-grid"></div>
+                    </div>
 
-            <div class="divider"></div>
+                    <!-- CPU Power Stats -->
+                    <div class="power-section">
+                        <h3>CPU POWER</h3>
+                        <div class="power-display">
+                            <div class="power-main">
+                                <span class="power-label">POWER:</span>
+                                <span class="power-value" id="p2-deck-sum">0</span>
+                            </div>
+                            <div class="power-sub">
+                                <span class="sub-label">STRIKE RATING:</span>
+                                <span class="sub-value" id="p2-strike-rating">6.0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-            <!-- Player Deck Grid -->
-            <div class="reinf-section">
-                <h3>YOUR FORCE (<span id="p1-deck-count">0</span>)</h3>
-                <div class="deck-grid" id="p1-deck-grid"></div>
-                <div class="deck-sum">POWER: <span id="p1-deck-sum">0</span></div>
+                <!-- Threat Delta - mirrors midline-trench -->
+                <div class="recon-middle">
+                    <div class="recon-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">THREAT DELTA</div>
+                            <div class="stat-value delta-value" id="threat-delta">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Player section - mirrors p1-unit -->
+                <div class="recon-player-section">
+                    <!-- Player Power Stats -->
+                    <div class="power-section">
+                        <h3>YOUR POWER</h3>
+                        <div class="power-display">
+                            <div class="power-main">
+                                <span class="power-label">POWER:</span>
+                                <span class="power-value" id="p1-deck-sum">0</span>
+                            </div>
+                            <div class="power-sub">
+                                <span class="sub-label">STRIKE RATING:</span>
+                                <span class="sub-value" id="p1-strike-rating">6.0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Player Deck Grid -->
+                    <div class="reinf-section">
+                        <h3>YOUR DECK (<span id="p1-deck-count">0</span>)</h3>
+                        <div class="deck-grid" id="p1-deck-grid"></div>
+                    </div>
+                </div>
             </div>
         </aside>
 

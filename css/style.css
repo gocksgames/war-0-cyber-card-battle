@@ -70,11 +70,86 @@ body {
     background: var(--reinf-bg);
     border-left: 1px solid #059669;
     border-right: none;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Recon content area - mirrors battle-zone */
+.recon-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    justify-content: center;
+    padding: 0.5rem;
+    /* Match battle-zone padding */
+    position: relative;
+}
+
+/* CPU section - mirrors p2-unit */
+.recon-cpu-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+/* Threat delta section - mirrors midline-trench */
+.recon-middle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 0;
+    min-height: 60px;
+}
+
+/* Player section - mirrors p1-unit */
+.recon-player-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+/* Create equal spacing containers */
+.reinforcements::before {
+    content: '';
+    flex: 1;
+    /* Top spacer */
+}
+
+.reinforcements::after {
+    content: '';
+    flex: 1;
+    /* Bottom spacer */
+}
+
+/* Position threat delta at vertical center */
+.reinforcements .recon-stats {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    z-index: 10;
+    margin: 0 1.5rem;
+}
+
+/* Ensure sections don't overlap with centered delta */
+.reinforcements>*:not(.recon-stats) {
+    position: relative;
+    z-index: 1;
 }
 
 .sidebar-header {
     background: #000;
-    padding: 1.5rem;
+    padding: 0.75rem 1rem;
+    /* Reduced padding */
     text-align: center;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
@@ -84,12 +159,22 @@ body {
 .reinf-header {
     background: rgba(0, 0, 0, 0.3);
     border-color: #059669;
+    padding: 0 0.5rem;
+    /* Match lane-header padding */
+    margin-bottom: 0.25rem;
+    /* Match lane-header margin */
 }
 
 .reinf-header h2 {
     font-family: var(--font-header);
     color: var(--reinf-header-color);
     letter-spacing: 0.1em;
+    font-size: 1rem;
+    /* Match lane-title font size */
+    font-weight: 800;
+    /* Match lane-title font weight */
+    text-transform: uppercase;
+    margin: 0;
 }
 
 .sidebar-header h1 {
@@ -108,6 +193,64 @@ body {
     color: var(--text-secondary);
     font-family: var(--font-mono);
     font-weight: 700;
+}
+
+/* Game Result Banner */
+.game-result-banner {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(244, 114, 182, 0.2));
+    border: 2px solid var(--accent-primary);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    text-align: center;
+    animation: bannerPulse 2s ease-in-out infinite;
+}
+
+.game-result-banner.win {
+    background: linear-gradient(135deg, rgba(74, 222, 128, 0.3), rgba(34, 197, 94, 0.2));
+    border-color: #4ade80;
+}
+
+.game-result-banner.loss {
+    background: linear-gradient(135deg, rgba(248, 113, 113, 0.3), rgba(239, 68, 68, 0.2));
+    border-color: #f87171;
+}
+
+.game-result-banner.draw {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.3), rgba(245, 158, 11, 0.2));
+    border-color: #fbbf24;
+}
+
+.banner-text {
+    font-family: var(--font-header);
+    font-size: 2rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-shadow: 0 0 20px currentColor;
+}
+
+.game-result-banner.win .banner-text {
+    color: #4ade80;
+}
+
+.game-result-banner.loss .banner-text {
+    color: #f87171;
+}
+
+.game-result-banner.draw .banner-text {
+    color: #fbbf24;
+}
+
+@keyframes bannerPulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+    }
+
+    50% {
+        box-shadow: 0 0 40px rgba(56, 189, 248, 0.6);
+    }
 }
 
 /* Controls */
@@ -315,29 +458,31 @@ input:checked+.slider:before {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-end;
-    /* Push items towards boundary? */
+    justify-content: center;
+    /* Center content to prevent shifts */
     position: relative;
     padding: 0.5rem;
     flex: 1;
-    /* Allow zones to grow */
+    /* Allow zones to grow equally */
 }
 
 .p2-unit {
-    /* CPU Top - Flex direction column: History Top -> Score -> Card Bottom */
-    justify-content: flex-start;
-    /* Stack from top down */
+    /* CPU Top - Flex direction column: History Top -> Card -> Score */
+    justify-content: flex-end;
+    /* Push content toward midline */
     border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
     /* Softer separator */
+    gap: 0.5rem;
+    /* Consistent spacing between elements */
 }
 
 .p1-unit {
-    /* Player Bottom - Flex direction column: Card Top -> Score -> History Bottom */
+    /* Player Bottom - Flex direction column: Score -> Card -> History */
     justify-content: flex-start;
-    /* Stack from top down physically? No, DOM order handles it. */
-    /* DOM: Card -> Score -> History */
-    /* So standard flex alignment works */
+    /* Push content toward midline */
     border-top: 1px dashed rgba(255, 255, 255, 0.05);
+    gap: 0.5rem;
+    /* Match CPU spacing for symmetry */
 }
 
 /* Midline Trench (Just for Diff Badge now) */
@@ -345,9 +490,10 @@ input:checked+.slider:before {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0.25rem;
-    height: 40px;
-    /* Fixed height for consistency */
+    padding: 0.5rem 0.25rem;
+    /* Symmetric vertical padding */
+    min-height: 60px;
+    /* Prevent collapse and maintain spacing */
 }
 
 /* History Grids styled to be peripheral */
@@ -375,14 +521,54 @@ input:checked+.slider:before {
 }
 
 .diff-badge {
-    font-size: 1.1rem;
+    font-size: 3.75rem;
+    /* 1.25x larger than score-tag (3rem) */
     font-family: var(--font-mono);
     font-weight: 700;
     background: #1a1a1a;
-    padding: 0.25rem 1rem;
+    padding: 0.5rem 1.25rem;
     border-radius: 1rem;
     border: 1px solid var(--border-color);
     z-index: 2;
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+/* Positive (Player winning) - Green with intensity */
+.diff-badge.diff-positive.diff-low {
+    color: #86efac;
+    /* Light green for small advantage */
+    text-shadow: 0 0 10px rgba(134, 239, 172, 0.5);
+}
+
+.diff-badge.diff-positive.diff-medium {
+    color: #4ade80;
+    /* Medium green */
+    text-shadow: 0 0 15px rgba(74, 222, 128, 0.7);
+}
+
+.diff-badge.diff-positive.diff-high {
+    color: #22c55e;
+    /* Intense green for large advantage */
+    text-shadow: 0 0 20px rgba(34, 197, 94, 0.9);
+}
+
+/* Negative (Player losing) - Red with intensity */
+.diff-badge.diff-negative.diff-low {
+    color: #fca5a5;
+    /* Light red for small disadvantage */
+    text-shadow: 0 0 10px rgba(252, 165, 165, 0.5);
+}
+
+.diff-badge.diff-negative.diff-medium {
+    color: #f87171;
+    /* Medium red */
+    text-shadow: 0 0 15px rgba(248, 113, 113, 0.7);
+}
+
+.diff-badge.diff-negative.diff-high {
+    color: #ef4444;
+    /* Intense red for large disadvantage */
+    text-shadow: 0 0 20px rgba(239, 68, 68, 0.9);
 }
 
 .card-slot {
@@ -407,9 +593,10 @@ input:checked+.slider:before {
 .score-tag {
     font-family: var(--font-header);
     font-size: 3rem;
-    /* Significantly Larger */
+    /* Base size, diff-badge is 1.25x this */
     font-weight: 900;
     margin: 0.5rem 0;
+    /* Equal margin top and bottom for symmetry */
     text-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
     line-height: 1;
 }
@@ -634,6 +821,121 @@ input:checked+.slider:before {
     color: #fff;
     opacity: 0.6;
 }
+
+/* Recon Stats */
+.recon-stats {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(5, 150, 105, 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.stat-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    letter-spacing: 0.05em;
+}
+
+.stat-value {
+    font-family: var(--font-header);
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--reinf-header-color);
+    text-shadow: 0 0 10px rgba(52, 211, 153, 0.5);
+}
+
+/* Delta value should be much larger */
+.delta-value {
+    font-size: 3.5rem;
+}
+
+.stat-value.positive {
+    color: #4ade80;
+    text-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+}
+
+.stat-value.negative {
+    color: #f87171;
+    text-shadow: 0 0 10px rgba(248, 113, 113, 0.5);
+}
+
+/* Power Section */
+.power-section {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0.75rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.power-section h3 {
+    font-family: var(--font-header);
+    font-size: 0.9rem;
+    color: var(--reinf-header-color);
+    margin-bottom: 0.5rem;
+}
+
+.power-display {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.power-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.power-label {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+.power-value {
+    font-family: var(--font-header);
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--reinf-header-color);
+}
+
+.power-sub {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 0.5rem;
+    opacity: 0.7;
+}
+
+.sub-label {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    letter-spacing: 0.05em;
+}
+
+.sub-value {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--reinf-header-color);
+}
+
+
 
 /* Override History Grids to use Matrix */
 .history-grid {
