@@ -12,13 +12,11 @@ ui.resetUI();
 ui.renderReinforcements(game);
 loadGameHistory(); // Load saved game history
 
-// Clear history button
+// Clear history button (double-click to clear)
 const clearHistoryBtn = document.getElementById('clear-history-btn');
 if (clearHistoryBtn) {
-    clearHistoryBtn.addEventListener('click', () => {
-        if (confirm('Clear game history?')) {
-            clearGameHistory();
-        }
+    clearHistoryBtn.addEventListener('dblclick', () => {
+        clearGameHistory();
     });
 }
 
