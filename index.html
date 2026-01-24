@@ -29,13 +29,17 @@
             </div>
 
             <div class="primary-controls">
-                <!-- AI Toggle -->
-                <div class="control-group ai-toggle-group">
-                    <label class="toggle-label">CPU INTEL:</label>
-                    <div class="toggle-switch">
-                        <input type="checkbox" id="ai-toggle">
-                        <label for="ai-toggle" class="slider"></label>
-                        <span class="status-text" id="ai-status">RANDOM</span>
+                <!-- AI Difficulty Slider -->
+                <div class="control-group ai-difficulty-group">
+                    <label class="difficulty-label">CPU INTEL:</label>
+                    <div class="difficulty-slider">
+                        <input type="range" id="ai-difficulty" min="0" max="2" value="2" step="1">
+                        <div class="difficulty-labels">
+                            <span>RANDOM</span>
+                            <span>EASY</span>
+                            <span>HARD</span>
+                        </div>
+                        <span class="difficulty-value" id="ai-difficulty-text">HARD</span>
                     </div>
                 </div>
 

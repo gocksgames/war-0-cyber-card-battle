@@ -95,12 +95,17 @@ export class GameState {
             return null;
         }
 
-        // AI Lane Selection
+        // AI Lane Selection based on difficulty
         let cpuLane = 'center';
 
-        if (this.difficulty === 'smart') {
+        if (this.difficulty === 2) {
+            // Hard: Greedy strategy
             cpuLane = this.getSmartCPUMove();
+        } else if (this.difficulty === 1) {
+            // Easy: Simple heuristic
+            cpuLane = this.getEasyCPUMove();
         } else {
+            // Random
             const lanes = ['left', 'center', 'right'];
             cpuLane = lanes[Math.floor(Math.random() * lanes.length)];
         }
@@ -133,39 +138,39 @@ export class GameState {
     }
 
     getSmartCPUMove() {
+        // Hard difficulty: Greedy strategy
         const lanes = ['left', 'center', 'right'];
 
-        // 1. Analyze Threats
-        // Priority: Attack a lane where playing here could flip the lead?
-        // Or defend a lane we are barely winning?
-        // Simple Heuristic: 
-        // - If losing a lane by < 15 points, attack it to try and catch up.
-        // - If winning a lane by > 20 points, ignore it (waste of resources), unless it's the only option.
-        // - Else random.
+        // Find weakest lane (where we're behind the most)
+        let weakestLane = lanes[0];
+        let weakestDiff = Infinity;
 
-        let candidates = [];
-
-        // Filter lanes where we are losing but close
-        const recoveryTargets = lanes.filter(l => {
-            const diff = this.lanes[l].score2 - this.lanes[l].score1; // CPU - Player
-            return diff < 0 && diff > -20; // Losing by less than 20
+        lanes.forEach(lane => {
+            const diff = this.lanes[lane].score2 - this.lanes[lane].score1;
+            if (diff < weakestDiff) {
+                weakestDiff = diff;
+                weakestLane = lane;
+            }
         });
 
-        if (recoveryTargets.length > 0) {
-            return recoveryTargets[Math.floor(Math.random() * recoveryTargets.length)];
-        }
+        return weakestLane;
+    }
 
-        // Filter lanes where we are barely winning (defend lead)
-        const defendTargets = lanes.filter(l => {
+    getEasyCPUMove() {
+        // Easy difficulty: Simple heuristic - avoid obvious losing lanes
+        const lanes = ['left', 'center', 'right'];
+
+        // Filter lanes where we aren't massively losing
+        const okLanes = lanes.filter(l => {
             const diff = this.lanes[l].score2 - this.lanes[l].score1;
-            return diff > 0 && diff < 10; // Leading by less than 10
+            return diff > -30; // Not losing by more than 30
         });
 
-        if (defendTargets.length > 0) {
-            return defendTargets[Math.floor(Math.random() * defendTargets.length)];
+        if (okLanes.length > 0) {
+            return okLanes[Math.floor(Math.random() * okLanes.length)];
         }
 
-        // If mostly tied or way ahead/behind, just random.
+        // All lanes are bad, pick random
         return lanes[Math.floor(Math.random() * lanes.length)];
     }
 

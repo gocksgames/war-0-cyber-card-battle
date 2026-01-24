@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Simulation - Win Rate Analysis</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #1a1a1a;
+            color: #fff;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #4ade80;
+        }
+
+        #results {
+            background: #2a2a2a;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .stat {
+            margin: 0.5rem 0;
+            font-size: 1.1rem;
+        }
+
+        button {
+            background: #4ade80;
+            color: #000;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 1rem 0;
+        }
+
+        button:hover {
+            background: #22c55e;
+        }
+
+        #progress {
+            color: #fbbf24;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>War.0 - Win Rate Simulation</h1>
+    <button onclick="runSimulation()">Run 100 Games</button>
+    <div id="progress"></div>
+    <div id="results"></div>
+
+    <script type="module">
+        import { GameState } from './js/game-state.js';
+        import { AIController } from './js/ai-controller.js';
+
+        window.runSimulation = async function () {
+            const progress = document.getElementById('progress');
+            const resultsDiv = document.getElementById('results');
+
+            const results = { player: 0, cpu: 0, draw: 0 };
+
+            progress.textContent = 'Running simulations...';
+            resultsDiv.textContent = '';
+
+            for (let i = 0; i < 100; i++) {
+                const game = new GameState();
+                const ai = new AIController();
+
+                // Play 6 rounds (12 cards total)
+                for (let round = 0; round < 6; round++) {
+                    // Random player move
+                    const p1Lane = ['left', 'center', 'right'][Math.floor(Math.random() * 3)];
+                    const p1Card = game.player1Deck[Math.floor(Math.random() * game.player1Deck.length)];
+                    game.deployCard(1, p1Lane, p1Card);
+
+                    // AI move
+                    const aiMove = ai.chooseMove(game);
+                    if (aiMove) {
+                        game.deployCard(2, aiMove.lane, aiMove.card);
+                    }
+                }
+
+                // Determine winner
+                let p1Wins = 0, p2Wins = 0;
+                ['left', 'center', 'right'].forEach(lane => {
+                    if (game.lanes[lane].score1 > game.lanes[lane].score2) p1Wins++;
+                    else if (game.lanes[lane].score2 > game.lanes[lane].score1) p2Wins++;
+                });
+
+                if (p1Wins > p2Wins) results.player++;
+                else if (p2Wins > p1Wins) results.cpu++;
+                else results.draw++;
+
+                if ((i + 1) % 10 === 0) {
+                    progress.textContent = `Completed ${i + 1}/100 games...`;
+                    await new Promise(r => setTimeout(r, 10)); // Allow UI update
+                }
+            }
+
+            progress.textContent = 'Simulation complete!';
+            resultsDiv.innerHTML = `
+                <h2>Results (100 Games)</h2>
+                <div class="stat">🎮 Player (Random) Wins: ${results.player} (${results.player}%)</div>
+                <div class="stat">🤖 CPU (AI) Wins: ${results.cpu} (${results.cpu}%)</div>
+                <div class="stat">🤝 Draws: ${results.draw} (${results.draw}%)</div>
+                <br>
+                <div class="stat">Win Rate vs Random: ${results.cpu > results.player ? 'CPU favored' : results.cpu < results.player ? 'Player favored' : 'Balanced'}</div>
+            `;
+        };
+    </script>
+</body>
+
+</html>
