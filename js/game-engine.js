@@ -49,7 +49,7 @@ export class GameState {
         };
 
         this.isGameOver = false;
-        this.difficulty = 2;
+        this.difficulty = 2; // 0=Random, 1=Easy, 2=Hard
 
         this.initializeGame();
     }
@@ -124,88 +124,69 @@ export class GameState {
     }
 
     getStrategicCPUMove() {
-        // ELITE AI V2: Card-Aware & Strategic
+        // ELITE AI V4: FLEXIBLE DYNAMIC EVALUATION
+        // Goal: Win 2 lanes. Re-evaluates every turn. No arbitrary limits.
+
         const lanes = ['left', 'center', 'right'];
 
-        // Peek at our next card
-        if (this.player2Deck.length === 0) return 'center';
-        const myCard = this.player2Deck[0];
-        const myValue = myCard.value;
-        const isHighCard = myValue >= 7;
+        // 1. Evaluate Lane States
+        const evaluations = lanes.map(lane => {
+            const l = this.lanes[lane];
+            const diff = l.score2 - l.score1; // P2 Advantage
+            const p1Cards = l.history.filter(h => h.player === 'p1').length;
+            const p2Cards = l.history.filter(h => h.player === 'p2').length;
 
-        const analysis = lanes.map(lane => {
-            const laneData = this.lanes[lane];
-            const p2Cards = laneData.history.filter(h => h.player === 'p2').length;
-            const p1Cards = laneData.history.filter(h => h.player === 'p1').length;
-            const mySlots = 2 - p2Cards;
-            const oppSlots = 2 - p1Cards;
-
-            // Current score diff (CPU - Player)
-            const diff = laneData.score2 - laneData.score1;
-
-            // Projected Analysis
-            // Max opponent can possibly get (assuming 10s)
-            const oppMaxAdd = oppSlots * 10;
-            const oppAvgAdd = oppSlots * 6;
-
-            // What I can get (My current card + future max)
-            const myFutureAdd = (mySlots - 1) > 0 ? (mySlots - 1) * 10 : 0;
-            const myTotalPotential = diff + myValue + myFutureAdd;
-
-            // Status Flags
-            const secure = (diff + myValue) > oppMaxAdd; // If I play this, I win regardless of opponent
-            const likelyWin = (diff + myValue) > oppAvgAdd;
-            const lostCause = (myTotalPotential < -5); // Even with perfect future play, likely lost
-
-            const exposed = (p1Cards === 0);
+            // Status
+            const isLost = diff < -25;
+            const isSecure = diff > 25;
 
             return {
-                lane, diff, mySlots, oppSlots,
-                secure, likelyWin, lostCause, exposed,
-                p1Cards
+                lane,
+                diff,
+                p1Cards,
+                p2Cards,
+                isLost,
+                isSecure
             };
         });
 
-        // Filter valid lanes
-        const playable = analysis.filter(a => a.mySlots > 0);
-        if (playable.length === 0) return 'center';
+        // 2. Filter out "Lost" lanes (unless everything is lost)
+        let playable = evaluations.filter(e => !e.isLost);
 
-        // SCORING
-        const scored = playable.map(a => {
-            let score = 0;
+        if (playable.length === 0) {
+            // All lost? Just play in the least lost one.
+            evaluations.sort((a, b) => b.diff - a.diff);
+            return evaluations[0].lane;
+        }
 
-            if (a.secure) {
-                // If already secured without this card, wasting it?
-                // Check if diff > oppMaxAdd already
-                if (a.diff > (a.oppSlots * 10)) {
-                    score = 10; // Redundant move
-                } else {
-                    score = 100; // Securing move!
-                }
-            } else if (a.likelyWin) {
-                score = 80;
-            } else if (a.exposed) {
-                // Punish exposed lanes unless we have trash card
-                if (isHighCard) score = 70;
-                else score = 60;
-            } else if (a.lostCause) {
-                score = 0; // Abandon
-            } else {
-                // General contest
-                // Prefer closer games
-                if (Math.abs(a.diff) < 10) score = 50;
-                else score = 30;
-            }
+        // 3. Sort by Advantage (Best first)
+        playable.sort((a, b) => b.diff - a.diff);
 
-            // Adjust based on game-wide strategy (2 of 3)
-            // If we are winning 2 lanes, defend them.
-            // If we are winning 1, find the 2nd best.
-            return { lane: a.lane, score };
-        });
+        // 4. Select Target Strategy: Focus on Top 2
+        const targetLanes = playable.slice(0, 2);
 
-        // Sort by score
-        scored.sort((a, b) => b.score - a.score);
-        return scored[0].lane;
+        // 5. Choose which of the Target Lanes to play in
+        // Strategy: "Elevate the Weakest Link" & "Secure the Win"
+
+        if (targetLanes.length > 1) {
+            const best = targetLanes[0];
+            const second = targetLanes[1];
+
+            // Priority: If secondary is exposed (0 cards), grab it!
+            if (second.p1Cards === 0) return second.lane;
+
+            // Priority: If best is already secure, focus everything on second
+            if (best.isSecure) return second.lane;
+
+            // Priority: Balance the two. Play in the one with LOWER score advantage.
+            // This ensures both move up together towards "Secure".
+            // Since we sorted by diff, 'second' is by definition the lower advantage.
+            return second.lane;
+
+        } else {
+            // Only 1 playable lane? Focus on it.
+            return targetLanes[0].lane;
+        }
     }
 
     getEasyCPUMove() {
