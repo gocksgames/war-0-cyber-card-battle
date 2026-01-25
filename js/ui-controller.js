@@ -116,8 +116,8 @@ export class UIController {
 
             const key = e.key.toLowerCase();
 
-            // R - Reset
-            if (key === 'r') {
+            // R - Reset (or Spacebar if game over)
+            if (key === 'r' || (key === ' ' && game.isGameOver)) {
                 e.preventDefault();
                 if (this.elements.resetBtn) this.elements.resetBtn.click();
                 return;
@@ -317,6 +317,33 @@ export class UIController {
                 }
             }
         });
+
+        // Inject Total Score Verification
+        const totalP1 = game.lanes.left.score1 + game.lanes.center.score1 + game.lanes.right.score1;
+        const totalP2 = game.lanes.left.score2 + game.lanes.center.score2 + game.lanes.right.score2;
+
+        let totalEl = document.getElementById('total-outcome');
+        if (!totalEl) {
+            // Create if logic allows (append to result-breakdown)
+            const breakdown = summary.querySelector('.result-breakdown');
+            if (breakdown) {
+                const div = document.createElement('div');
+                div.className = 'lane-result total-row';
+                div.innerHTML = `<span class="lane-name">TOTAL:</span><span class="lane-outcome" id="total-outcome"></span>`;
+                breakdown.appendChild(div);
+                totalEl = div.querySelector('#total-outcome');
+            }
+        }
+
+        if (totalEl) {
+            totalEl.textContent = `${totalP1}-${totalP2}`;
+            // Optional: Highlight if 216
+            if (totalP1 === 216 && totalP2 === 216) {
+                totalEl.style.color = 'var(--neon-green)';
+            } else {
+                totalEl.style.color = 'var(--neon-red)'; // Warning if math is off
+            }
+        }
 
         summary.style.display = 'block';
     }
