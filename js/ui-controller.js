@@ -37,10 +37,8 @@ export class UIController {
         if (this.elements.simBtn) {
             this.elements.simBtn.addEventListener('click', () => {
                 const results = game.simulateRestOfGame();
-                results.forEach(res => {
-                    this.updateScores(res.playerMove.score, 0, res.playerMove.lane, true);
-                    this.updateScores(0, res.cpuMove.score, res.cpuMove.lane, true);
 
+                results.forEach(res => {
                     const pLaneEl = this.getLaneElements(res.playerMove.lane);
                     const cLaneEl = this.getLaneElements(res.cpuMove.lane);
 
@@ -49,6 +47,11 @@ export class UIController {
 
                     this.updateLaneHistory(res.playerMove.lane, game.lanes[res.playerMove.lane].history);
                     this.updateLaneHistory(res.cpuMove.lane, game.lanes[res.cpuMove.lane].history);
+                });
+
+                // Final Score Update (Authoritative)
+                ['left', 'center', 'right'].forEach(lane => {
+                    this.updateScores(game.lanes[lane].score1, game.lanes[lane].score2, lane);
                 });
 
                 this.renderReinforcements(game);
@@ -291,13 +294,28 @@ export class UIController {
 
         if (p1Wins > p2Wins) {
             summary.className = 'game-result-summary win';
-            if (resultMsg) resultMsg.textContent = `YOU WIN (${p1Wins}-${p2Wins})`;
+            if (resultMsg) resultMsg.textContent = `YOU WIN`;
         } else if (p2Wins > p1Wins) {
             summary.className = 'game-result-summary loss';
-            if (resultMsg) resultMsg.textContent = `CPU WINS (${p2Wins}-${p1Wins})`;
+            if (resultMsg) resultMsg.textContent = `CPU WINS`;
         } else {
             summary.className = 'game-result-summary draw';
             if (resultMsg) resultMsg.textContent = 'DRAW';
+        }
+
+        // Inject Restart Hint if not present
+        let restartHint = document.getElementById('restart-hint');
+        if (!restartHint) {
+            const div = document.createElement('div');
+            div.id = 'restart-hint';
+            div.textContent = 'PRESS [SPACE] FOR NEW GAME';
+            div.style.textAlign = 'center';
+            div.style.marginTop = '15px';
+            div.style.fontSize = '0.75rem';
+            div.style.opacity = '0.7';
+            div.style.textTransform = 'uppercase';
+            div.style.letterSpacing = '1px';
+            summary.appendChild(div);
         }
 
         ['left', 'center', 'right'].forEach(lane => {
