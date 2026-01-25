@@ -78,11 +78,6 @@ export class UIController {
 
                     const result = game.playRound(lane);
                     if (result) {
-                        this.updateScores(result.playerMove.score, result.cpuMove.score, lane, false); // No immediate update for p1 lane, use animation? Actually we just update both.
-                        // Wait, updateScores needs updating for other lane too
-                        // The engine returns result for THIS round.
-                        // CPU plays concurrently.
-
                         // Update Player Lane
                         this.updateScores(result.playerMove.score, game.lanes[lane].score2, lane);
                         // Update CPU Lane (could be different)
