@@ -276,8 +276,8 @@ export class UIController {
     }
 
     showSidebarResults(game) {
-        const sidebar = document.getElementById('sidebar-results');
-        if (!sidebar) return;
+        const summary = document.getElementById('game-result-summary');
+        if (!summary) return;
 
         let p1Wins = 0;
         let p2Wins = 0;
@@ -287,25 +287,38 @@ export class UIController {
             else if (game.lanes[lane].score2 > game.lanes[lane].score1) p2Wins++;
         });
 
+        const resultMsg = document.getElementById('result-message');
+
         if (p1Wins > p2Wins) {
-            this.showGameResultBanner('win', 'YOU WIN');
+            summary.className = 'game-result-summary win';
+            if (resultMsg) resultMsg.textContent = `YOU WIN (${p1Wins}-${p2Wins})`;
         } else if (p2Wins > p1Wins) {
-            this.showGameResultBanner('loss', 'CPU WINS');
+            summary.className = 'game-result-summary loss';
+            if (resultMsg) resultMsg.textContent = `CPU WINS (${p2Wins}-${p1Wins})`;
         } else {
-            this.showGameResultBanner('draw', 'DRAW');
+            summary.className = 'game-result-summary draw';
+            if (resultMsg) resultMsg.textContent = 'DRAW';
         }
 
-        sidebar.innerHTML = `
-            <h3>BATTLE REPORT</h3>
-            ${['left', 'center', 'right'].map(lane => `
-                <div class="result-line">
-                    <span>${lane.toUpperCase()}</span>
-                    <span class="${game.lanes[lane].score1 > game.lanes[lane].score2 ? 'res-win' : (game.lanes[lane].score1 < game.lanes[lane].score2 ? 'res-loss' : 'res-draw')}">
-                        ${game.lanes[lane].score1}:${game.lanes[lane].score2}
-                    </span>
-                </div>
-            `).join('')}
-        `;
+        ['left', 'center', 'right'].forEach(lane => {
+            const laneData = game.lanes[lane];
+            const outcomeEl = document.getElementById(`${lane}-outcome`);
+
+            if (outcomeEl) {
+                if (laneData.score1 > laneData.score2) {
+                    outcomeEl.textContent = `WIN (${laneData.score1}-${laneData.score2})`;
+                    outcomeEl.className = 'lane-outcome win';
+                } else if (laneData.score2 > laneData.score1) {
+                    outcomeEl.textContent = `LOSS (${laneData.score1}-${laneData.score2})`;
+                    outcomeEl.className = 'lane-outcome loss';
+                } else {
+                    outcomeEl.textContent = `DRAW (${laneData.score1}-${laneData.score2})`;
+                    outcomeEl.className = 'lane-outcome draw';
+                }
+            }
+        });
+
+        summary.style.display = 'block';
     }
 
     setButtonsEnabled(enabled) {
