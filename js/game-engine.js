@@ -124,7 +124,7 @@ export class GameState {
     }
 
     getStrategicCPUMove() {
-        // ELITE AI V4: FLEXIBLE DYNAMIC EVALUATION
+        // ELITE AI V4.1: FLEXIBLE DYNAMIC EVALUATION + CARD AWARENESS
         // Goal: Win 2 lanes. Re-evaluates every turn. No arbitrary limits.
 
         const lanes = ['left', 'center', 'right'];
@@ -165,9 +165,11 @@ export class GameState {
         // 4. Select Target Strategy: Focus on Top 2
         const targetLanes = playable.slice(0, 2);
 
-        // 5. Choose which of the Target Lanes to play in
-        // Strategy: "Elevate the Weakest Link" & "Secure the Win"
+        // PEEK at next card to make smarter choice
+        const myCardValue = this.player2Deck.length > 0 ? this.player2Deck[0].value : 5;
+        const isHighCard = myCardValue >= 7;
 
+        // 5. Choose which of the Target Lanes to play in
         if (targetLanes.length > 1) {
             const best = targetLanes[0];
             const second = targetLanes[1];
@@ -178,9 +180,11 @@ export class GameState {
             // Priority: If best is already secure, focus everything on second
             if (best.isSecure) return second.lane;
 
+            // Priority: Use High Cards to FLIP/SECURE the weaker lane
+            // If we have a high card, applying it to the lower-advantage lane is usually optimal
+            if (isHighCard) return second.lane;
+
             // Priority: Balance the two. Play in the one with LOWER score advantage.
-            // This ensures both move up together towards "Secure".
-            // Since we sorted by diff, 'second' is by definition the lower advantage.
             return second.lane;
 
         } else {
