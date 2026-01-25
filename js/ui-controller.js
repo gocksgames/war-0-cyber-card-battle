@@ -547,6 +547,16 @@ export class UIController {
         if (p1Count) p1Count.textContent = game.player1Deck.length;
         if (p1Sum) p1Sum.textContent = p1Total;
 
+        // Render Next Card Preview (P1)
+        const p1Preview = document.getElementById('p1-next-card-preview');
+        if (p1Preview) {
+            if (game.player1Deck.length > 0) {
+                this.renderCard(game.player1Deck[0], p1Preview);
+            } else {
+                p1Preview.innerHTML = '';
+            }
+        }
+
         const p2Total = this.renderCardMatrix(p2Grid, game.player2Deck, true);
         if (p2Count) p2Count.textContent = game.player2Deck.length;
         if (p2Sum) p2Sum.textContent = p2Total;
