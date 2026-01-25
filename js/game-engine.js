@@ -124,71 +124,88 @@ export class GameState {
     }
 
     getStrategicCPUMove() {
-        // ELITE AI: Win 2 of 3 - capitalize on exposed lanes, abandon losers
+        // ELITE AI V2: Card-Aware & Strategic
         const lanes = ['left', 'center', 'right'];
+
+        // Peek at our next card
+        if (this.player2Deck.length === 0) return 'center';
+        const myCard = this.player2Deck[0];
+        const myValue = myCard.value;
+        const isHighCard = myValue >= 7;
 
         const analysis = lanes.map(lane => {
             const laneData = this.lanes[lane];
             const p2Cards = laneData.history.filter(h => h.player === 'p2').length;
             const p1Cards = laneData.history.filter(h => h.player === 'p1').length;
-            const slotsLeft = 2 - p2Cards;
+            const mySlots = 2 - p2Cards;
+            const oppSlots = 2 - p1Cards;
+
+            // Current score diff (CPU - Player)
             const diff = laneData.score2 - laneData.score1;
 
-            const p1SlotsLeft = 2 - p1Cards;
-            const p1MaxThreat = p1SlotsLeft * 10;
-            const maxWeCanAdd = slotsLeft * 10;
-            const canWin = (diff + maxWeCanAdd - p1MaxThreat) > 0;
+            // Projected Analysis
+            // Max opponent can possibly get (assuming 10s)
+            const oppMaxAdd = oppSlots * 10;
+            const oppAvgAdd = oppSlots * 6;
 
-            const winning = diff > 0;
-            const exposed = p1Cards === 0;
-            const playerCommitted = p1Cards === 2;
+            // What I can get (My current card + future max)
+            const myFutureAdd = (mySlots - 1) > 0 ? (mySlots - 1) * 10 : 0;
+            const myTotalPotential = diff + myValue + myFutureAdd;
 
-            let priority = 0;
+            // Status Flags
+            const secure = (diff + myValue) > oppMaxAdd; // If I play this, I win regardless of opponent
+            const likelyWin = (diff + myValue) > oppAvgAdd;
+            const lostCause = (myTotalPotential < -5); // Even with perfect future play, likely lost
 
-            if (slotsLeft === 0) {
-                priority = -9999;
-            } else if (exposed && slotsLeft > 0) {
-                priority = 1000; // HIGHEST - free lane!
-            } else if (winning && diff > 15) {
-                priority = 10; // Already won big - stop
-            } else if (playerCommitted && diff < -10) {
-                priority = 5; // Player all-in and ahead - ABANDON
-            } else if (!canWin) {
-                priority = 1; // Impossible - ABANDON
-            } else if (winning && diff > 5) {
-                priority = 50 + diff; // Defend
-            } else if (diff > -10 && diff <= 5) {
-                priority = 200 - Math.abs(diff) * 10; // Contested - high priority
-            } else if (canWin && diff > -20) {
-                priority = 100 + diff; // Winnable
-            } else {
-                priority = 20;
-            }
+            const exposed = (p1Cards === 0);
 
-            return { lane, diff, slotsLeft, p1Cards, p2Cards, canWin, winning, exposed, playerCommitted, priority };
+            return {
+                lane, diff, mySlots, oppSlots,
+                secure, likelyWin, lostCause, exposed,
+                p1Cards
+            };
         });
 
-        const available = analysis.filter(a => a.slotsLeft > 0);
-        if (available.length === 0) return 'center';
+        // Filter valid lanes
+        const playable = analysis.filter(a => a.mySlots > 0);
+        if (playable.length === 0) return 'center';
 
-        const lanesWinning = available.filter(a => a.winning).length;
-        const exposedLanes = available.filter(a => a.exposed);
+        // SCORING
+        const scored = playable.map(a => {
+            let score = 0;
 
-        // PRIORITY 1: Take exposed lanes
-        if (exposedLanes.length > 0 && lanesWinning < 2) {
-            return exposedLanes[0].lane;
-        }
+            if (a.secure) {
+                // If already secured without this card, wasting it?
+                // Check if diff > oppMaxAdd already
+                if (a.diff > (a.oppSlots * 10)) {
+                    score = 10; // Redundant move
+                } else {
+                    score = 100; // Securing move!
+                }
+            } else if (a.likelyWin) {
+                score = 80;
+            } else if (a.exposed) {
+                // Punish exposed lanes unless we have trash card
+                if (isHighCard) score = 70;
+                else score = 60;
+            } else if (a.lostCause) {
+                score = 0; // Abandon
+            } else {
+                // General contest
+                // Prefer closer games
+                if (Math.abs(a.diff) < 10) score = 50;
+                else score = 30;
+            }
 
-        // PRIORITY 2: Defend if winning 2+
-        if (lanesWinning >= 2) {
-            const winners = available.filter(a => a.winning);
-            winners.sort((a, b) => a.diff - b.diff);
-            return winners[0].lane;
-        }
+            // Adjust based on game-wide strategy (2 of 3)
+            // If we are winning 2 lanes, defend them.
+            // If we are winning 1, find the 2nd best.
+            return { lane: a.lane, score };
+        });
 
-        // PRIORITY 3: Highest priority
-        available.sort((a, b) => b.priority - a.priority);
-        return available[0].lane;
+        // Sort by score
+        scored.sort((a, b) => b.score - a.score);
+        return scored[0].lane;
     }
 
     getEasyCPUMove() {
