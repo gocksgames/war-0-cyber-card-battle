@@ -1,11 +1,23 @@
 export const SUITS = ['♠', '♥', '♣', '♦'];
-export const RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', '10'];
+export const RANKS = ['10', 'J', 'Q', 'K', 'A'];
 
 export class Card {
-    constructor(suit, rank, value) {
+    constructor(suit, rank) {
         this.suit = suit;
         this.rank = rank;
-        this.value = value;
+        this.value = this.getCardValue(rank);
+        this.id = Math.random().toString(36).substr(2, 9);
+    }
+
+    getCardValue(rank) {
+        switch (rank) {
+            case 'A': return 25;
+            case 'K': return 20;
+            case 'Q': return 10;
+            case 'J': return -10; // Traitor Card
+            case '10': return 0;  // Dud Card
+            default: return 0;
+        }
     }
 
     get color() {
@@ -21,11 +33,15 @@ export class Deck {
 
     reset() {
         this.cards = [];
-        SUITS.forEach(suit => {
-            RANKS.forEach((rank, index) => {
-                this.cards.push(new Card(suit, rank, index + 2));
+        // WAR.1: DOUBLE DECK (2x 20 cards = 40 cards total)
+        // To ensure game length is similar to original (36 cards)
+        for (let i = 0; i < 2; i++) {
+            SUITS.forEach(suit => {
+                RANKS.forEach(rank => {
+                    this.cards.push(new Card(suit, rank));
+                });
             });
-        });
+        }
     }
 
     shuffle() {
@@ -50,6 +66,7 @@ export class GameState {
 
         this.isGameOver = false;
         this.difficulty = 2; // 0=Random, 1=Easy, 2=Pro, 3=Hard+
+        this.gameHistory = []; // Added based on snippet
 
         this.initializeGame();
     }
@@ -61,13 +78,12 @@ export class GameState {
     }
 
     initializeGame() {
-        const deck1 = new Deck();
-        deck1.shuffle();
-        this.player1Deck = deck1.cards;
+        const deck = new Deck(); // Use a single deck for the game
+        deck.shuffle();
+        this.deck = deck.cards; // Store the full shuffled deck
 
-        const deck2 = new Deck();
-        deck2.shuffle();
-        this.player2Deck = deck2.cards;
+        this.player1Deck = this.deck.slice(0, this.deck.length / 2); // Deal half to player 1
+        this.player2Deck = this.deck.slice(this.deck.length / 2); // Deal other half to player 2
 
         this.lanes = {
             'left': { score1: 0, score2: 0, history: [] },

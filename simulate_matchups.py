@@ -1,47 +1,62 @@
-
 import random
 import statistics
 
 # --- CONSTANTS ---
-SUITS = ['♠', '♥', '♣', '♦']
-RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', '10']
+# War.1 Variant
+SUITS = ['hearts', 'diamonds', 'clubs', 'spades']
+RANKS = ['10', 'J', 'Q', 'K', 'A']
 
 class Card:
-    def __init__(self, suit, rank, value):
+    def __init__(self, suit, rank):
         self.suit = suit
         self.rank = rank
-        self.value = value
+        self.value = self.get_value(rank)
+
+    def get_value(self, rank):
+        if rank == 'A': return 25
+        if rank == 'K': return 20
+        if rank == 'Q': return 10
+        if rank == 'J': return -10
+        if rank == '10': return 0
+        return 0
 
 class GameState:
     def __init__(self):
-        self.deck1 = self.create_deck()
-        self.deck2 = self.create_deck()
+        self.deck = []
+        self.p1_deck = []
+        self.p2_deck = []
         self.lanes = {
-            'left': {'score1': 0, 'score2': 0, 'p1_cards': 0, 'p2_cards': 0, 'history': []},
-            'center': {'score1': 0, 'score2': 0, 'p1_cards': 0, 'p2_cards': 0, 'history': []},
-            'right': {'score1': 0, 'score2': 0, 'p1_cards': 0, 'p2_cards': 0, 'history': []}
+            'left': {'score1': 0, 'score2': 0, 'history': []},
+            'center': {'score1': 0, 'score2': 0, 'history': []},
+            'right': {'score1': 0, 'score2': 0, 'history': []}
         }
         self.is_game_over = False
+        self.create_and_deal()
 
-    def create_deck(self):
-        cards = []
-        for suit in SUITS:
-            for i, rank in enumerate(RANKS):
-                cards.append(Card(suit, rank, i + 2))
-        random.shuffle(cards)
-        return cards
+    def create_and_deal(self):
+        self.deck = []
+        # Double Deck for War.1 (2 * 4 * 5 = 40 cards)
+        for _ in range(2):
+            for s in SUITS:
+                for r in RANKS:
+                    self.deck.append(Card(s, r))
+        random.shuffle(self.deck)
+        
+        # Deal
+        mid = len(self.deck) // 2
+        self.p1_deck = self.deck[:mid]
+        self.p2_deck = self.deck[mid:]
 
     def play_round(self, p1_lane, p2_lane):
-        if not self.deck1 or not self.deck2:
+        if not self.p1_deck or not self.p2_deck:
             self.is_game_over = True
             return
 
-        c1 = self.deck1.pop(0)
-        c2 = self.deck2.pop(0)
+        c1 = self.p1_deck.pop(0)
+        c2 = self.p2_deck.pop(0)
 
         l1 = self.lanes[p1_lane]
         l1['score1'] += c1.value
-        l1['p1_cards'] += 1
         l1['history'].append({'player': 'p1', 'val': c1.value})
 
         l2 = self.lanes[p2_lane]

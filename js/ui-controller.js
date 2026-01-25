@@ -500,7 +500,7 @@ export class UIController {
 
         this.hideGameResultBanner();
 
-        if (this.elements.remainingCount) this.elements.remainingCount.textContent = '36 Cards';
+        if (this.elements.remainingCount) this.elements.remainingCount.textContent = '40 Cards';
         if (this.elements.messageArea) this.elements.messageArea.textContent = '';
     }
 
