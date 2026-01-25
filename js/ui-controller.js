@@ -109,6 +109,42 @@ export class UIController {
                 });
             }
         });
+
+        // Keyboard Shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+            const key = e.key.toLowerCase();
+
+            // R - Reset
+            if (key === 'r') {
+                e.preventDefault();
+                if (this.elements.resetBtn) this.elements.resetBtn.click();
+                return;
+            }
+
+            // P - Simulate
+            if (key === 'p' && !game.isGameOver) {
+                e.preventDefault();
+                if (this.elements.simBtn) this.elements.simBtn.click();
+                return;
+            }
+
+            // A, S, D - Lanes
+            if (game.isGameOver) return;
+
+            switch (key) {
+                case 'a':
+                    if (this.elements.drawBtns.left) this.elements.drawBtns.left.click();
+                    break;
+                case 's':
+                    if (this.elements.drawBtns.center) this.elements.drawBtns.center.click();
+                    break;
+                case 'd':
+                    if (this.elements.drawBtns.right) this.elements.drawBtns.right.click();
+                    break;
+            }
+        });
     }
 
     getLaneElements(lane) {
