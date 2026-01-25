@@ -510,13 +510,22 @@ export class UIController {
         container.className = 'card-matrix';
 
         const suitOrder = ['♥', '♠', '♦', '♣'];
-        const rankOrder = ['10', '9', '8', '7', '6', '5', '4', '3', '2'];
+        const rankOrder = ['A', 'K', 'Q', 'J', '10'];
 
         let totalValue = 0;
 
         suitOrder.forEach(suit => {
             rankOrder.forEach(rank => {
-                const value = parseInt(rank);
+                let value = 0;
+                // War.1 Value Logic
+                switch (rank) {
+                    case 'A': value = 25; break;
+                    case 'K': value = 20; break;
+                    case 'Q': value = 10; break;
+                    case 'J': value = -10; break;
+                    case '10': value = 0; break;
+                }
+
                 const present = cardList.some(c => c.suit === suit && c.rank === rank);
                 const isActive = activeIfInList ? present : !present;
 
