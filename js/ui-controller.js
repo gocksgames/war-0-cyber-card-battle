@@ -19,6 +19,8 @@ export class UIController {
     }
 
     setupEventListeners(game) {
+        this.bindHistoryControls();
+
         // Difficulty Slider
         const slider = document.getElementById('ai-difficulty');
         const diffText = document.getElementById('ai-difficulty-text');
@@ -115,25 +117,46 @@ export class UIController {
 
         // Keyboard Shortcuts
         document.addEventListener('keydown', (e) => {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            // Allow shortcuts even if a slider (range input) is focused
+            if ((e.target.tagName === 'INPUT' && e.target.type !== 'range') || e.target.tagName === 'TEXTAREA') return;
 
             const key = e.key.toLowerCase();
 
-            // R - Reset (or Spacebar if game over)
-            if (key === 'r' || (key === ' ' && game.isGameOver)) {
+            // N - New Game (Reset)
+            // Space - New Game (Only if Game Over)
+            if (key === 'n' || (key === ' ' && game.isGameOver)) {
                 e.preventDefault();
                 if (this.elements.resetBtn) this.elements.resetBtn.click();
                 return;
             }
 
-            // P - Simulate
-            if (key === 'p' && !game.isGameOver) {
+            // M - Simulate (Matrix Mode)
+            if (key === 'm' && !game.isGameOver) {
                 e.preventDefault();
                 if (this.elements.simBtn) this.elements.simBtn.click();
                 return;
             }
 
-            // A, S, D - Lanes
+            // Difficulty Shortcuts
+            const slider = document.getElementById('ai-difficulty');
+            if (slider) {
+                let newLevel = -1;
+                switch (key) {
+                    case 'r': newLevel = 0; break; // Random
+                    case 'e': newLevel = 1; break; // Easy
+                    case 'p': newLevel = 2; break; // Pro
+                    case 'h': newLevel = 3; break; // Hard+
+                }
+
+                if (newLevel !== -1) {
+                    slider.value = newLevel;
+                    // Trigger input event manually to update game state
+                    slider.dispatchEvent(new Event('input'));
+                    return;
+                }
+            }
+
+            // A, S, D - Lanes (Draw)
             if (game.isGameOver) return;
 
             switch (key) {
@@ -368,6 +391,75 @@ export class UIController {
         }
 
         summary.style.display = 'block';
+
+        // Update History Logic
+        let winner = 'draw';
+        if (p1Wins > p2Wins) winner = 'p1';
+        else if (p2Wins > p1Wins) winner = 'p2';
+
+        this.updateGameHistory(winner);
+    }
+
+    updateGameHistory(winner) {
+        const historyContainer = document.getElementById('game-history-icons');
+        const winCountEl = document.getElementById('win-count');
+        const lossCountEl = document.getElementById('loss-count');
+
+        if (!historyContainer) return;
+
+        // Create Icon
+        const icon = document.createElement('div');
+        icon.className = 'history-icon';
+
+        if (winner === 'p1') {
+            icon.classList.add('win');
+            icon.textContent = 'W';
+        } else if (winner === 'p2') {
+            icon.classList.add('loss');
+            icon.textContent = 'L';
+        } else {
+            icon.classList.add('draw');
+            icon.textContent = 'D';
+        }
+
+        // Prepend (Newest first)
+        historyContainer.prepend(icon);
+
+        // Limit to 10
+        if (historyContainer.children.length > 10) {
+            historyContainer.removeChild(historyContainer.lastElementChild);
+        }
+
+        // Update Stats
+        // We can count current icons or use persistent storage.
+        // For now, just count icons? No, icons are limited to 10.
+        // We want TOTAL stats or Last 10 stats?
+        // UI says: "LAST 10 GAMES" header.
+        // But stats says "W: 0 L: 0". Usually implies session stats?
+        // Let's track session stats in class property.
+
+        if (!this.sessionStats) this.sessionStats = { w: 0, l: 0 };
+
+        if (winner === 'p1') this.sessionStats.w++;
+        else if (winner === 'p2') this.sessionStats.l++;
+
+        if (winCountEl) winCountEl.textContent = this.sessionStats.w;
+        if (lossCountEl) lossCountEl.textContent = this.sessionStats.l;
+    }
+
+    bindHistoryControls() {
+        const clearBtn = document.getElementById('clear-history-btn');
+        if (clearBtn) {
+            clearBtn.addEventListener('dblclick', () => {
+                const historyContainer = document.getElementById('game-history-icons');
+                if (historyContainer) historyContainer.innerHTML = '';
+                this.sessionStats = { w: 0, l: 0 };
+                const wEl = document.getElementById('win-count');
+                const lEl = document.getElementById('loss-count');
+                if (wEl) wEl.textContent = '0';
+                if (lEl) lEl.textContent = '0';
+            });
+        }
     }
 
     setButtonsEnabled(enabled) {

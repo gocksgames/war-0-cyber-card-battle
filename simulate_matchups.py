@@ -129,21 +129,63 @@ def get_ai_move(game, difficulty, is_p1):
         # Priority: If best is already secure, focus everything on second
         if best['is_secure']: return second['lane']
         
-        # HARD+ INTELLIGENCE (EFFICIENCY LOGIC)
+        # HARD+ INTELLIGENCE (OMNISCIENT COUNTER)
         if can_peek:
-            # 1. RESCUE THE LEADER
-            if best['diff'] < 0:
-                 return best['lane']
+            # 1. Peek Enemy Card
+            enemy_deck = game.deck2 if is_p1 else game.deck1
+            enemy_val = 6
+            if enemy_deck: enemy_val = enemy_deck[0].value
             
-            # 2. SWEEP STRATEGY
-            if second['diff'] > 0 and len(playable) > 2:
-                 third = playable[2]
-                 if third['diff'] + my_card_value > 0:
-                     return third['lane']
+            # 2. Predict Enemy Move (Pro Logic: Target their 2nd best)
+            # Enemy Perspective:
+            enemy_evals = []
+            for l in lanes_keys:
+                lane = game.lanes[l]
+                # Enemy diff = Their Score - My Score = - (My Score - Their Score) -> -diff
+                # Wait, diff is already calculated as (My - Enemy). So Enemy View is -diff.
+                d_my = (lane['score1'] - lane['score2']) if is_p1 else (lane['score2'] - lane['score1'])
+                d_enemy = -d_my
+                
+                # Check if lost for enemy
+                # Lost if d_enemy < -25
+                is_lost = d_enemy < -25
+                enemy_evals.append({'lane': l, 'diff': d_enemy, 'is_lost': is_lost})
             
-            # 3. HIGH CARD SNIPE
-            if my_card_value >= 8:
-                 return second['lane']
+            e_playable = [e for e in enemy_evals if not e['is_lost']]
+            e_playable.sort(key=lambda x: x['diff'], reverse=True)
+            
+            pred_lane = 'center'
+            if e_playable:
+                if len(e_playable) > 1:
+                    pred_lane = e_playable[1]['lane']
+                else:
+                    pred_lane = e_playable[0]['lane']
+            
+            # 3. Find Counter Move
+            best_move = second['lane']
+            max_min_score = -9999
+            
+            candidates = [best['lane'], second['lane']]
+            if len(playable) > 2: candidates.append(playable[2]['lane'])
+            
+            # Base Diffs for Me
+            base_diffs = { item['lane']: item['diff'] for item in playable } # track all valid lanes
+            
+            for m in candidates:
+                d = base_diffs.copy()
+                d[m] += my_card_value # Me
+                if pred_lane in d:
+                    d[pred_lane] -= enemy_val # Enemy (reduces my diff)
+                
+                # Score: min of top 2
+                vals = sorted(d.values(), reverse=True)
+                score = vals[1] if len(vals) > 1 else vals[0]
+                
+                if score > max_min_score:
+                    max_min_score = score
+                    best_move = m
+                    
+            return best_move
         
         # PRO STRATEGY / DEFAULT
         return second['lane']

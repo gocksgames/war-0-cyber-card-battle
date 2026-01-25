@@ -190,33 +190,141 @@ export class GameState {
             // Priority: If best is already secure (>25), focus everything on second
             if (best.isSecure) return second.lane;
 
-            // HARD+ INTELLIGENCE (EFFICIENCY LOGIC)
+            // HARD+ INTELLIGENCE (OMNISCIENT COUNTER)
             if (canPeek) {
-                // 1. RESCUE THE LEADER
-                // If even our "Best" lane is losing (<0), we MUST focus power there.
-                // Pro creates a fatal error here by balancing the "Second" lane (which is losing worse).
-                if (best.diff < 0) {
-                    return best.lane;
+                // PEAK INTELLIGENCE:
+                // 1. Peek at Enemy's current card.
+                // 2. Predict Enemy's move (Assume they play Pro/Greedy).
+                // 3. Choose the move that maximizes our board state *after* the exchange.
+
+                let enemyCardVal = 6;
+                // CPU is usually Player 2. So Enemy is Player 1.
+                // In this codebase, CPU is hardcoded as P2 in 'playRound'.
+                if (this.player1Deck.length > 0) {
+                    enemyCardVal = this.player1Deck[0].value;
                 }
 
-                // 2. SWEEP STRATEGY
-                // If Top 2 are already winning (>0), try to sweep the 3rd.
-                if (second.diff > 0 && playable.length > 2) {
-                    const third = playable[2];
-                    if (third.diff + myCardValue > 0) return third.lane;
+                // Predict Enemy Move (Pro Logic: Attacks their 'Second' best lane)
+                // Note: Enemy views board from their perspective.
+                // Enemy Diff = -1 * Our Diff.
+                // Enemy wants to maximize Enemy Diff.
+                // Enemy sorts lanes by Enemy Diff. Targets top 2. picks 2nd. (Which is the lower of the top 2).
+
+                // Let's model Enemy Perception:
+                let enemyEvals = lanes.map(l => {
+                    const d = -(this.lanes[l].score2 - this.lanes[l].score1); // P1 Adv
+                    const lost = d < -25;
+                    return { lane: l, diff: d, isLost: lost };
+                });
+
+                let enemyPlayable = enemyEvals.filter(e => !e.isLost);
+                enemyPlayable.sort((a, b) => b.diff - a.diff);
+
+                let predictedEnemyLane = 'center';
+                if (enemyPlayable.length > 0) {
+                    if (enemyPlayable.length > 1) {
+                        predictedEnemyLane = enemyPlayable[1].lane;
+                    } else {
+                        predictedEnemyLane = enemyPlayable[0].lane;
+                    }
                 }
 
-                // 3. HIGH CARD SNIPE
-                if (myCardValue >= 8) return second.lane;
+                // Now Evaluate Our Best Response
+                let bestMove = second.lane;
+                let maxMinDiff = -Infinity;
+
+                const candidates = [best.lane, second.lane];
+                if (playable.length > 2) candidates.push(playable[2].lane);
+
+                for (const myLane of candidates) {
+                    // Simulate Outcome
+                    // Copy current scores/diffs
+                    // We only care about the diffs of our Top 2 lanes (Best + Second)
+
+                    let diffs = {
+                        [best.lane]: best.diff,
+                        [second.lane]: second.diff
+                    };
+
+                    // Apply My Move
+                    if (diffs[myLane] !== undefined) diffs[myLane] += myCardValue;
+
+                    // Apply Enemy Move
+                    // Enemy reduces our diff (or increases theirs)
+                    if (diffs[predictedEnemyLane] !== undefined) diffs[predictedEnemyLane] -= enemyCardVal;
+
+                    // Calculate Score: min(L1, L2)
+                    let vals = Object.values(diffs);
+                    let minVal = Math.min(...vals);
+                    if (minVal > maxMinDiff) {
+                        maxMinDiff = minVal;
+                        bestMove = myLane;
+                    }
+                }
+                return bestMove;
+            }
+            let bestMove = second.lane;
+            let maxScore = -Infinity;
+
+            // Candidate lanes to consider for Move 1 (limit to top 3 to be safe, though usually top 2 matter)
+            const candidateLanes = [best.lane, second.lane];
+            if (playable.length > 2) candidateLanes.push(playable[2].lane);
+
+            for (const move1Lane of candidateLanes) {
+                // State after Move 1 (Current Card)
+                // We only track the 'diff' change.
+                // Note: We don't model enemy move perfectly, assume static for relative comparison.
+
+                // Clone diffs
+                let diffs = {
+                    [best.lane]: best.diff,
+                    [second.lane]: second.diff,
+                };
+                if (playable.length > 2) diffs[playable[2].lane] = playable[2].diff;
+
+                // Apply Move 1
+                diffs[move1Lane] += myCardValue;
+
+                // Now Find Optimal Move 2 (Next Card)
+                // We assume we will play NextCard in the lane that maximizes the state *then*.
+                let bestScoreForThisBranch = -Infinity;
+
+                // Lookahead: Where would we play the next card?
+                for (const move2Lane of candidateLanes) {
+                    let branchDiffs = { ...diffs };
+
+                    // Next Card Value logic (JS)
+                    let nextVal = 6;
+                    if (this.player2Deck.length > 1) {
+                        nextVal = this.player2Deck[1].value;
+                    }
+
+                    branchDiffs[move2Lane] += nextVal;
+
+                    // Evaluate State: return value of the 2nd best lane.
+                    const finalValues = Object.values(branchDiffs).sort((a, b) => b - a);
+                    let score = finalValues.length > 1 ? finalValues[1] : finalValues[0];
+
+                    if (score > bestScoreForThisBranch) {
+                        bestScoreForThisBranch = score;
+                    }
+                }
+
+                if (bestScoreForThisBranch > maxScore) {
+                    maxScore = bestScoreForThisBranch;
+                    bestMove = move1Lane;
+                }
             }
 
-            // PRO STRATEGY (AND LOW-ROLL HARD+)
-            // Always fight for the balance. Play in the 2nd best lane.
-            return second.lane;
-
-        } else {
-            return targetLanes[0].lane;
+            return bestMove;
         }
+
+        // PRO STRATEGY (AND LOW-ROLL HARD+)
+        // Always fight for the balance. Play in the 2nd best lane.
+        return second.lane;
+
+
+
     }
 
     getEasyCPUMove() {
