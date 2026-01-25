@@ -132,7 +132,7 @@ export class GameState {
     }
 
     getStrategicCPUMove(canPeek) {
-        // ELITE AI V4.2: DYNAMIC EVALUATION + OPTIONAL PEEKING
+        // ELITE AI V4.3: DYNAMIC EVALUATION + EFFICIENCY LOGIC
         const lanes = ['left', 'center', 'right'];
 
         // 1. Evaluate Lane States
@@ -172,14 +172,13 @@ export class GameState {
         const targetLanes = playable.slice(0, 2);
 
         // 5. PEEKING LOGIC
-        let isHighCard = false;
+        let myCardValue = 6; // Average for Pro
         if (canPeek) {
-            const myCardValue = this.player2Deck.length > 0 ? this.player2Deck[0].value : 5;
-            isHighCard = myCardValue >= 7; // 7,8,9,10 are "High"
+            myCardValue = this.player2Deck.length > 0 ? this.player2Deck[0].value : 5;
         }
 
         // 6. Execution Limit Check (Safety)
-        if (targetLanes.length === 0) return 'center'; // Should not happen
+        if (targetLanes.length === 0) return 'center';
 
         if (targetLanes.length > 1) {
             const best = targetLanes[0];
@@ -188,13 +187,31 @@ export class GameState {
             // Priority: If secondary is exposed (0 cards), grab it!
             if (second.p1Cards === 0) return second.lane;
 
-            // Priority: If best is already secure, focus everything on second
+            // Priority: If best is already secure (>25), focus everything on second
             if (best.isSecure) return second.lane;
 
-            // Priority: Use High Cards to FLIP/SECURE the weaker lane (ONLY IF PEEKING)
-            if (canPeek && isHighCard) return second.lane;
+            // HARD+ INTELLIGENCE (EFFICIENCY LOGIC)
+            if (canPeek) {
+                // 1. RESCUE THE LEADER
+                // If even our "Best" lane is losing (<0), we MUST focus power there.
+                // Pro creates a fatal error here by balancing the "Second" lane (which is losing worse).
+                if (best.diff < 0) {
+                    return best.lane;
+                }
 
-            // Priority: Balance the two. Play in the one with LOWER score advantage.
+                // 2. SWEEP STRATEGY
+                // If Top 2 are already winning (>0), try to sweep the 3rd.
+                if (second.diff > 0 && playable.length > 2) {
+                    const third = playable[2];
+                    if (third.diff + myCardValue > 0) return third.lane;
+                }
+
+                // 3. HIGH CARD SNIPE
+                if (myCardValue >= 8) return second.lane;
+            }
+
+            // PRO STRATEGY (AND LOW-ROLL HARD+)
+            // Always fight for the balance. Play in the 2nd best lane.
             return second.lane;
 
         } else {

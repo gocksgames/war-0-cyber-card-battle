@@ -241,6 +241,10 @@ export class UIController {
     }
 
     hideGameResultBanner() {
+        const summary = document.getElementById('game-result-summary');
+        if (summary) summary.style.display = 'none';
+
+        // Also hide banner if legacy
         const banner = document.getElementById('game-result-banner');
         if (banner) banner.style.display = 'none';
     }
