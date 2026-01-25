@@ -49,14 +49,15 @@ export class GameState {
         };
 
         this.isGameOver = false;
-        this.difficulty = 2; // 0=Random, 1=Easy, 2=Hard
+        this.difficulty = 2; // 0=Random, 1=Easy, 2=Pro, 3=Hard+
 
         this.initializeGame();
     }
 
     setDifficulty(level) {
-        this.difficulty = level;
-        console.log("AI Difficulty set to:", this.difficulty);
+        this.difficulty = parseInt(level);
+        const labels = ['RANDOM', 'EASY', 'PRO', 'HARD+'];
+        console.log(`AI Difficulty set to: ${this.difficulty} (${labels[this.difficulty]})`);
     }
 
     initializeGame() {
@@ -89,11 +90,18 @@ export class GameState {
 
         let cpuLane = 'center';
 
-        if (this.difficulty === 2) {
-            cpuLane = this.getStrategicCPUMove();
+        // Difficulty Logic Update
+        if (this.difficulty === 3) {
+            // HARD+: Elite AI (Peek Enabled)
+            cpuLane = this.getStrategicCPUMove(true);
+        } else if (this.difficulty === 2) {
+            // PRO: Elite AI (No Peek)
+            cpuLane = this.getStrategicCPUMove(false);
         } else if (this.difficulty === 1) {
+            // EASY: Avoids loss
             cpuLane = this.getEasyCPUMove();
         } else {
+            // RANDOM: Pure Chaos
             const lanes = ['left', 'center', 'right'];
             cpuLane = lanes[Math.floor(Math.random() * lanes.length)];
         }
@@ -123,10 +131,8 @@ export class GameState {
         return roundResult;
     }
 
-    getStrategicCPUMove() {
-        // ELITE AI V4.1: FLEXIBLE DYNAMIC EVALUATION + CARD AWARENESS
-        // Goal: Win 2 lanes. Re-evaluates every turn. No arbitrary limits.
-
+    getStrategicCPUMove(canPeek) {
+        // ELITE AI V4.2: DYNAMIC EVALUATION + OPTIONAL PEEKING
         const lanes = ['left', 'center', 'right'];
 
         // 1. Evaluate Lane States
@@ -165,11 +171,16 @@ export class GameState {
         // 4. Select Target Strategy: Focus on Top 2
         const targetLanes = playable.slice(0, 2);
 
-        // PEEK at next card to make smarter choice
-        const myCardValue = this.player2Deck.length > 0 ? this.player2Deck[0].value : 5;
-        const isHighCard = myCardValue >= 7;
+        // 5. PEEKING LOGIC
+        let isHighCard = false;
+        if (canPeek) {
+            const myCardValue = this.player2Deck.length > 0 ? this.player2Deck[0].value : 5;
+            isHighCard = myCardValue >= 7; // 7,8,9,10 are "High"
+        }
 
-        // 5. Choose which of the Target Lanes to play in
+        // 6. Execution Limit Check (Safety)
+        if (targetLanes.length === 0) return 'center'; // Should not happen
+
         if (targetLanes.length > 1) {
             const best = targetLanes[0];
             const second = targetLanes[1];
@@ -180,15 +191,13 @@ export class GameState {
             // Priority: If best is already secure, focus everything on second
             if (best.isSecure) return second.lane;
 
-            // Priority: Use High Cards to FLIP/SECURE the weaker lane
-            // If we have a high card, applying it to the lower-advantage lane is usually optimal
-            if (isHighCard) return second.lane;
+            // Priority: Use High Cards to FLIP/SECURE the weaker lane (ONLY IF PEEKING)
+            if (canPeek && isHighCard) return second.lane;
 
             // Priority: Balance the two. Play in the one with LOWER score advantage.
             return second.lane;
 
         } else {
-            // Only 1 playable lane? Focus on it.
             return targetLanes[0].lane;
         }
     }
