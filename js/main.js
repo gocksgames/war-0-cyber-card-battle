@@ -148,8 +148,8 @@ function endGame() {
     });
 
     let msg = '';
-    if (p1Wins > p2Wins) msg = `YOU WIN (${p1Wins}-${p2Wins})`;
-    else if (p2Wins > p1Wins) msg = `CPU WINS (${p2Wins}-${p1Wins})`;
+    if (game.player1Score > game.player2Score) msg = `YOU WIN (${game.player1Score}-${game.player2Score})`;
+    else if (game.player2Score > game.player1Score) msg = `CPU WINS (${game.player2Score}-${game.player1Score})`;
     else msg = 'DRAW!';
 
     ui.updateMessage(msg);

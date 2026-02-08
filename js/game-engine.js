@@ -44,6 +44,8 @@ export class GameState {
         this.deck = []; // Helper only now
         this.player1Deck = [];
         this.player2Deck = [];
+        this.player1Score = 0;
+        this.player2Score = 0;
 
         // Lanes: Left, Center, Right
         // We track scores per lane.
@@ -82,6 +84,8 @@ export class GameState {
             'right': { score1: 0, score2: 0, history: [] }
         };
         this.isGameOver = false;
+        this.player1Score = 0;
+        this.player2Score = 0;
     }
 
     playRound(playerLane) {
@@ -107,6 +111,9 @@ export class GameState {
 
         const card1 = this.player1Deck.shift(); // Player Card
         const card2 = this.player2Deck.shift(); // CPU Card
+
+        this.player1Score += card1.value;
+        this.player2Score += card2.value;
 
         // Update Player's Chosen Lane
         const pLaneData = this.lanes[playerLane];

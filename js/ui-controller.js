@@ -140,8 +140,8 @@ export class UIController {
         });
 
         // Determine result text/color
-        const resultText = p1Wins > p2Wins ? 'VICTORY' : (p2Wins > p1Wins ? 'DEFEAT' : 'STALEMATE');
-        const resultColor = p1Wins > p2Wins ? '#4ade80' : (p2Wins > p1Wins ? '#f87171' : 'white');
+        const resultText = game.player1Score > game.player2Score ? 'VICTORY' : (game.player2Score > game.player1Score ? 'DEFEAT' : 'STALEMATE');
+        const resultColor = game.player1Score > game.player2Score ? '#4ade80' : (game.player2Score > game.player1Score ? '#f87171' : 'white');
 
         sidebar.innerHTML = `
             <h3>BATTLE REPORT</h3>
@@ -154,6 +154,12 @@ export class UIController {
                 </div>
             `).join('')}
             <div class="divider"></div>
+            <div class="result-line" style="font-size: 1.1rem;">
+                <span>TOTAL SCORE</span>
+                <span class="${game.player1Score > game.player2Score ? 'res-win' : (game.player1Score < game.player2Score ? 'res-loss' : 'res-draw')}">
+                    ${game.player1Score}:${game.player2Score}
+                </span>
+            </div>
             <div class="result-line" style="font-size: 1.1rem; color: ${resultColor}">
                 <span>RESULT</span>
                 <span>${resultText}</span>
